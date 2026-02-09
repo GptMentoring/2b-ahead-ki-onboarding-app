@@ -1,0 +1,68 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function: Check if user is authenticated
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Helper function: Check if user owns the document
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Helper function: Check if user is admin
+    function isAdmin() {
+      return isSignedIn() &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // Users can read their own document
+      allow read: if isSignedIn() && isOwner(userId);
+
+      // Users can create their own document
+      allow create: if isSignedIn() && isOwner(userId);
+
+      // Users can update their own document (but not isAdmin field)
+      allow update: if isSignedIn() &&
+                       isOwner(userId) &&
+                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin']);
+
+      // Admins can read all users
+      allow read: if isAdmin();
+
+      // Only admins can delete users
+      allow delete: if isAdmin();
+    }
+
+    // Assessments collection
+    match /assessments/{assessmentId} {
+      // Users can read/write their own assessments
+      allow read, write: if isSignedIn() &&
+                            resource.data.userId == request.auth.uid;
+
+      // Admins can read all assessments
+      allow read: if isAdmin();
+    }
+
+    // Analyses collection
+    match /analyses/{analysisId} {
+      // Users can read their own analyses
+      allow read: if isSignedIn() &&
+                     resource.data.userId == request.auth.uid;
+
+      // System can write analyses (for Gemini API results)
+      allow write: if isSignedIn() &&
+                      request.resource.data.userId == request.auth.uid;
+
+      // Admins can read all analyses
+      allow read: if isAdmin();
+
+      // Admins can delete analyses
+      allow delete: if isAdmin();
+    }
+  }
+}

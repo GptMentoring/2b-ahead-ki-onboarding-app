@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onboarding Fragebogen Mockup - 2bahead</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=EB+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'EB Garamond', serif;
+            background: linear-gradient(135deg, #FDFCFD 0%, #F7F2F4 100%);
+            color: #2D3748;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+            color: #64162D;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #64162D;
+            margin-bottom: 3rem;
+            font-weight: 500;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .progress-step {
+            flex: 1;
+            text-align: center;
+            padding: 1rem;
+            background: white;
+            border-radius: 12px;
+            margin: 0 0.5rem;
+            border: 2px solid #E2E8F0;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .progress-step.active {
+            background: #64162D;
+            color: white;
+            border-color: #64162D;
+            box-shadow: 0 4px 12px rgba(100, 22, 45, 0.2);
+        }
+
+        .progress-step.completed {
+            background: #8E2442;
+            color: white;
+            border-color: #8E2442;
+        }
+
+        .progress-step-number {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #E2E8F0;
+            color: #64162D;
+            line-height: 32px;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-step.active .progress-step-number {
+            background: white;
+            color: #64162D;
+        }
+
+        .progress-step.completed .progress-step-number::after {
+            content: "✓";
+        }
+
+        .progress-step-text {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        /* Quiz Card */
+        .quiz-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border-left: 12px solid #64162D;
+            margin-bottom: 2rem;
+        }
+
+        .question {
+            margin-bottom: 3rem;
+        }
+
+        .question:last-child {
+            margin-bottom: 0;
+        }
+
+        .question-label {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #64162D;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .question-helper {
+            font-size: 0.95rem;
+            color: #718096;
+            margin-bottom: 1.5rem;
+            font-style: italic;
+        }
+
+        /* Radio Options */
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background: #FDFCFD;
+            border: 2px solid #E2E8F0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .radio-option:hover {
+            background: #FFF5F7;
+            border-color: #64162D;
+        }
+
+        .radio-option input[type="radio"] {
+            margin-right: 1rem;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #64162D;
+        }
+
+        .radio-option input[type="radio"]:checked + label {
+            color: #64162D;
+            font-weight: 600;
+        }
+
+        /* Checkbox Options */
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .checkbox-option {
+            padding: 0.75rem 1.25rem;
+            background: #FDFCFD;
+            border: 2px solid #E2E8F0;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .checkbox-option:hover {
+            background: #FFF5F7;
+            border-color: #64162D;
+        }
+
+        .checkbox-option input[type="checkbox"] {
+            margin-right: 0.5rem;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #64162D;
+        }
+
+        .checkbox-option input[type="checkbox"]:checked + label {
+            color: #64162D;
+            font-weight: 600;
+        }
+
+        /* Textarea */
+        textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #E2E8F0;
+            border-radius: 12px;
+            font-family: 'EB Garamond', serif;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 100px;
+            transition: all 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #64162D;
+            box-shadow: 0 0 0 3px rgba(100, 22, 45, 0.1);
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+
+        button {
+            padding: 1rem 2rem;
+            font-family: 'EB Garamond', serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #64162D 0%, #8E2442 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 4px 16px rgba(100, 22, 45, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #E2E8F0;
+            color: #64162D;
+        }
+
+        .btn-secondary:hover {
+            background: #CBD5E0;
+        }
+
+        /* Live Preview */
+        .live-preview {
+            background: linear-gradient(135deg, #FFF5F7 0%, #FFF 100%);
+            border: 2px dashed #64162D;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            display: none;
+        }
+
+        .live-preview.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        .live-preview h3 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .live-preview h3::before {
+            content: "👀";
+            margin-right: 0.5rem;
+        }
+
+        .live-preview-text {
+            font-size: 1rem;
+            color: #4A5568;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Time Estimate */
+        .time-estimate {
+            text-align: center;
+            color: #718096;
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Step Hidden */
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+            animation: slideIn 0.4s;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .progress-container {
+                flex-direction: column;
+            }
+
+            .progress-step {
+                margin: 0.5rem 0;
+            }
+
+            .quiz-card {
+                padding: 1.5rem;
+            }
+
+            .checkbox-group {
+                flex-direction: column;
+            }
+
+            .checkbox-option {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Dein KI-Onboarding</h1>
+        <p class="subtitle">In 3 Schritten zu deinem persönlichen Lernpfad</p>
+        <p class="time-estimate">⏱️ Dauert nur 5-8 Minuten</p>
+
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-step active" id="progress-1">
+                <div class="progress-step-number">1</div>
+                <div class="progress-step-text">Vorkenntnisse</div>
+            </div>
+            <div class="progress-step" id="progress-2">
+                <div class="progress-step-number">2</div>
+                <div class="progress-step-text">Use-Cases</div>
+            </div>
+            <div class="progress-step" id="progress-3">
+                <div class="progress-step-number">3</div>
+                <div class="progress-step-text">Kontext</div>
+            </div>
+        </div>
+
+        <!-- STEP 1: Vorkenntnisse -->
+        <div class="step active" id="step-1">
+            <div class="quiz-card">
+                <h2 style="margin-bottom: 2rem;">Schritt 1: Deine Vorkenntnisse</h2>
+
+                <!-- Frage 1.1 -->
+                <div class="question">
+                    <label class="question-label">1. Wie würdest du deine aktuellen KI-Kenntnisse beschreiben?</label>
+                    <p class="question-helper">Sei ehrlich - es gibt kein "Richtig" oder "Falsch"</p>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="q1_1" value="0" onchange="updatePreview()">
+                            <span>Ich habe noch nie mit KI-Tools gearbeitet</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="q1_1" value="1" onchange="updatePreview()">
+                            <span>Ich habe Videos gesehen oder Artikel gelesen, aber noch nicht selbst ausprobiert</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="q1_1" value="2" onchange="updatePreview()">
+                            <span>Ich habe ChatGPT/Claude ein paar Mal für einfache Aufgaben genutzt</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="q1_1" value="3" onchange="updatePreview()">
+                            <span>Ich experimentiere regelmäßig mit KI-Tools (ChatGPT, Claude, Gemini)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="q1_1" value="4" onchange="updatePreview()">
+                            <span>Ich habe bereits eigene KI-Workflows oder -Projekte gebaut</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Frage 1.2 -->
+                <div class="question">
+                    <label class="question-label">2. Welche KI-Tools hast du schon genutzt?</label>
+                    <p class="question-helper">Mehrfachauswahl möglich</p>
+                    <div class="checkbox-group">
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="q1_2" value="chatgpt">
+                            <span>ChatGPT (OpenAI)</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="q1_2" value="claude">
+                            <span>Claude (Anthropic)</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="q1_2" value="gemini">
+                            <span>Gemini (Google)</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="q1_2" value="copilot">
+                            <span>Microsoft Copilot</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="q1_2" value="perplexity">
+                            <span>Perplexity</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="q1_2" value="midjourney">
+                            <span>Midjourney / DALL-E</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="q1_2" value="notebooklm">
+                            <span>NotebookLM</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="q1_2" value="none">
+                            <span>Noch keine Tools genutzt</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Frage 1.3 -->
+                <div class="question">
+                    <label class="question-label">3. Gibt es Einschränkungen bei deiner Tool-Nutzung?</label>
+                    <p class="question-helper">Z.B. durch dein Unternehmen</p>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="q1_3" value="none" checked>
+                            <span>Nein, ich kann alle Tools frei nutzen</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="q1_3" value="microsoft">
+                            <span>Ja, ich darf nur Microsoft-Tools nutzen (Copilot, Power Automate)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="q1_3" value="google">
+                            <span>Ja, ich darf nur Google-Tools nutzen (Gemini, AI Studio)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="q1_3" value="blocked">
+                            <span>Ja, mein Unternehmen erlaubt keine externen KI-Tools</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Live Preview -->
+                <div class="live-preview" id="preview-step1">
+                    <h3>Vorschau: Deine Persona</h3>
+                    <p class="live-preview-text" id="preview-text-step1">
+                        Wähle deine KI-Erfahrung aus, um eine Vorschau zu sehen...
+                    </p>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-secondary" disabled>← Zurück</button>
+                    <button class="btn-primary" onclick="nextStep(1)">Weiter →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 2: Use-Cases -->
+        <div class="step" id="step-2">
+            <div class="quiz-card">
+                <h2 style="margin-bottom: 2rem;">Schritt 2: Deine Use-Cases</h2>
+
+                <!-- Frage 2.1 -->
+                <div class="question">
+                    <label class="question-label">4. Welcher Bereich interessiert dich am meisten?</label>
+                    <p class="question-helper">Wähle bis zu 3 Bereiche aus</p>
+                    <div class="checkbox-group">
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="q2_1" value="sales">
+                            <span>📊 Vertrieb (Leads finden, Anreichern, Outreach)</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="q2_1" value="marketing">
+                            <span>📣 Marketing (Social Media, Content, Wettbewerbsanalyse)</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="q2_1" value="support">
+                            <span>💬 Kundensupport (Chatbots, E-Mail-Automatisierung)</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="q2_1" value="operativ">
+                            <span>⚙️ Prozess-Automatisierung (Excel-Anreicherung, E-Mail-Management)</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="q2_1" value="recherche">
+                            <span>🔍 Recherche & Analyse (Tiefenrecherche, Ad-hoc Suche)</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="q2_1" value="agenten">
+                            <span>🤖 KI-Agenten & Orchestrierung (Custom GPTs, Agenten-Teams)</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="q2_1" value="strategie">
+                            <span>🎯 Strategie & Grundlagen (KI-Strategie, Prompt-Engineering)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Frage 2.2 -->
+                <div class="question">
+                    <label class="question-label">5. Gibt es einen konkreten Use-Case den du sofort umsetzen willst?</label>
+                    <p class="question-helper">Optional: Beschreibe in eigenen Worten was du bauen willst</p>
+                    <textarea name="q2_2" placeholder="z.B. 'Ich will LinkedIn-Posts automatisch generieren und posten' oder 'Automatische Lead-Suche für B2B-Kunden'"></textarea>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-secondary" onclick="prevStep(2)">← Zurück</button>
+                    <button class="btn-primary" onclick="nextStep(2)">Weiter →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 3: Kontext -->
+        <div class="step" id="step-3">
+            <div class="quiz-card">
+                <h2 style="margin-bottom: 2rem;">Schritt 3: Dein Kontext</h2>
+
+                <!-- Frage 3.1 -->
+                <div class="question">
+                    <label class="question-label">6. Wie viel Zeit kannst du pro Woche für KI-Lernen investieren?</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="q3_1" value="0-2h">
+                            <span>0-2 Stunden/Woche (wenig Zeit)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="q3_1" value="2-4h" checked>
+                            <span>2-4 Stunden/Woche (normal)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="q3_1" value="4-8h">
+                            <span>4-8 Stunden/Woche (intensiv)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="q3_1" value="8+h">
+                            <span>8+ Stunden/Woche (sehr intensiv)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Frage 3.2 -->
+                <div class="question">
+                    <label class="question-label">7. Wie lernst du am liebsten?</label>
+                    <p class="question-helper">Mehrfachauswahl möglich</p>
+                    <div class="checkbox-group">
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="q3_2" value="live">
+                            <span>🎥 Live-Sessions & Community-Austausch</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="q3_2" value="selfpaced">
+                            <span>📚 Self-Paced Video-Kurse</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="q3_2" value="doing">
+                            <span>💻 Learning-by-Doing (direkt Blueprints bauen)</span>
+                        </label>
+                        <label class="checkbox-option">
+                            <input type="checkbox" name="q3_2" value="mentoring">
+                            <span>👥 1:1 Mentoring & Feedback</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Frage 3.3 -->
+                <div class="question">
+                    <label class="question-label">8. In welcher Branche arbeitest du?</label>
+                    <p class="question-helper">Optional, hilft uns passende Beispiele zu zeigen</p>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="q3_3" value="tech">
+                            <span>💻 Technologie & IT</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="q3_3" value="finance">
+                            <span>💰 Finanzen & Banken</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="q3_3" value="health">
+                            <span>🏥 Gesundheit & Medizin</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="q3_3" value="retail">
+                            <span>🛒 Handel & E-Commerce</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="q3_3" value="manufacturing">
+                            <span>🏭 Industrie & Produktion</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="q3_3" value="service">
+                            <span>🤝 Dienstleistungen</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="q3_3" value="consulting">
+                            <span>📊 Beratung</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="q3_3" value="other">
+                            <span>🌟 Sonstige</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Frage 3.4 -->
+                <div class="question">
+                    <label class="question-label">9. Was ist dein Hauptziel mit KI?</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="q3_4" value="efficiency">
+                            <span>⚡ Effizienz steigern (Zeit sparen, Prozesse automatisieren)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="q3_4" value="innovation">
+                            <span>💡 Innovation vorantreiben (Neue Geschäftsmodelle, Produkte)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="q3_4" value="skills">
+                            <span>📈 Skills aufbauen (Karriere-Entwicklung, Wettbewerbsvorteil)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="q3_4" value="team">
+                            <span>👥 Team befähigen (Wissen weitergeben, Change-Management)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-secondary" onclick="prevStep(3)">← Zurück</button>
+                    <button class="btn-primary" onclick="submitAssessment()">✨ Analyse starten</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let currentStep = 1;
+
+        function nextStep(step) {
+            // Hide current step
+            document.getElementById('step-' + step).classList.remove('active');
+            document.getElementById('progress-' + step).classList.remove('active');
+            document.getElementById('progress-' + step).classList.add('completed');
+
+            // Show next step
+            currentStep = step + 1;
+            document.getElementById('step-' + currentStep).classList.add('active');
+            document.getElementById('progress-' + currentStep).classList.add('active');
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function prevStep(step) {
+            // Hide current step
+            document.getElementById('step-' + step).classList.remove('active');
+            document.getElementById('progress-' + step).classList.remove('active');
+
+            // Show previous step
+            currentStep = step - 1;
+            document.getElementById('step-' + currentStep).classList.add('active');
+            document.getElementById('progress-' + currentStep).classList.remove('completed');
+            document.getElementById('progress-' + currentStep).classList.add('active');
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function updatePreview() {
+            const experienceValue = document.querySelector('input[name="q1_1"]:checked');
+            if (!experienceValue) return;
+
+            const score = parseInt(experienceValue.value);
+            const preview = document.getElementById('preview-step1');
+            const previewText = document.getElementById('preview-text-step1');
+
+            preview.classList.add('active');
+
+            if (score === 0) {
+                previewText.textContent = "Du wirst wahrscheinlich als 'Absoluter Anfänger' eingestuft. Perfekt! Wir starten ganz von vorne.";
+            } else if (score === 1) {
+                previewText.textContent = "Du wirst wahrscheinlich als 'Neugieriger Mitarbeiter' eingestuft. Du kennst die Basics und willst strukturiert lernen.";
+            } else if (score >= 2 && score <= 3) {
+                previewText.textContent = "Du wirst wahrscheinlich als 'Experimentier-Selbstständige/r' eingestuft. Du experimentierst bereits und willst jetzt professionalisieren!";
+            } else {
+                previewText.textContent = "Du scheinst schon fortgeschritten zu sein! Wir zeigen dir wie du deine Workflows produktionsreif machst.";
+            }
+        }
+
+        function submitAssessment() {
+            alert('🎉 Assessment abgeschlossen!\n\nNächster Schritt: Dashboard mit\n- Deiner Persona\n- Top-3 Use-Cases\n- Top-3 Sessions\n- Deinem Lernpfad\n\nDies ist nur ein Mockup - die echte Logik wird in der App implementiert.');
+        }
+    </script>
+</body>
+</html>

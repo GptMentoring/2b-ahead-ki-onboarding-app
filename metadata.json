@@ -1,0 +1,7 @@
+{
+  "name": "2b AHEAD KI-Onboarding-App",
+  "description": "A comprehensive onboarding platform for mentoring clients of the 2b AHEAD AI program, featuring assessments, a 5-pillar methodology analysis, and guided AI tool setup.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

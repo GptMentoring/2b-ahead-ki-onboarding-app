@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2b AHEAD KI-Onboarding Assessment - Version 2.0</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=EB+Garamond:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'EB Garamond', serif;
+      background: linear-gradient(135deg, #FDFCFD 0%, #F7F2F4 100%);
+      color: #111827;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .logo {
+      height: 60px;
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 2.5rem;
+      color: #64162D;
+      margin-bottom: 10px;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: #374151;
+      font-weight: 500;
+    }
+
+    .version-badge {
+      display: inline-block;
+      background: #065F46;
+      color: white;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-top: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .progress-container {
+      margin: 40px 0;
+    }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .progress-label {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: #64162D;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .progress-percent {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 1.8rem;
+      color: #64162D;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 12px;
+      background: #E5E7EB;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #64162D, #8E2442);
+      border-radius: 20px;
+      transition: width 0.8s ease;
+    }
+
+    .steps-overview {
+      display: flex;
+      gap: 8px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .step-indicator {
+      flex: 1;
+      min-width: 80px;
+      padding: 12px 8px;
+      text-align: center;
+      border: 2px solid #E5E7EB;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      transition: all 0.3s ease;
+    }
+
+    .step-indicator.active {
+      border-color: #64162D;
+      background: rgba(100, 22, 45, 0.05);
+      color: #64162D;
+    }
+
+    .step-indicator.completed {
+      border-color: #065F46;
+      background: rgba(6, 95, 70, 0.05);
+      color: #065F46;
+    }
+
+    .card {
+      background: white;
+      border-radius: 24px;
+      padding: 50px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      border: 2px solid #E5E7EB;
+      border-left: 6px solid #64162D;
+      min-height: 600px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(100,22,45,0.03) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .module-title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 1.8rem;
+      color: #111827;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: -0.01em;
+    }
+
+    .module-badge {
+      display: inline-block;
+      background: #64162D;
+      color: white;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .module-badge.new {
+      background: #8E6D2F;
+    }
+
+    .question-group {
+      margin-bottom: 40px;
+    }
+
+    .question-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 1rem;
+      color: #111827;
+      margin-bottom: 15px;
+    }
+
+    .tooltip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      background: #8E6D2F;
+      color: white;
+      border-radius: 50%;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: help;
+      position: relative;
+    }
+
+    .tooltip:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      top: -10px;
+      left: 30px;
+      background: #111827;
+      color: white;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-family: 'EB Garamond', serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      white-space: normal;
+      width: 300px;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      line-height: 1.4;
+    }
+
+    .question-help {
+      display: block;
+      font-size: 0.9rem;
+      color: #6B7280;
+      font-style: italic;
+      margin-top: 5px;
+      margin-bottom: 15px;
+    }
+
+    .input-text,
+    .input-select,
+    .input-textarea {
+      width: 100%;
+      padding: 16px 20px;
+      border: 2px solid #D1D5DB;
+      border-radius: 16px;
+      font-family: 'EB Garamond', serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #111827;
+      transition: all 0.3s ease;
+      background: white;
+    }
+
+    .input-text:focus,
+    .input-select:focus,
+    .input-textarea:focus {
+      outline: none;
+      border-color: #64162D;
+      box-shadow: 0 0 0 4px rgba(100, 22, 45, 0.1);
+    }
+
+    .input-textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .radio-group,
+    .checkbox-group {
+      display: grid;
+      gap: 12px;
+    }
+
+    .radio-option,
+    .checkbox-option {
+      position: relative;
+      display: flex;
+      align-items: center;
+      padding: 18px 20px;
+      border: 2px solid #D1D5DB;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: white;
+    }
+
+    .radio-option:hover,
+    .checkbox-option:hover {
+      border-color: #64162D;
+      background: rgba(100, 22, 45, 0.02);
+    }
+
+    .radio-option input[type="radio"],
+    .checkbox-option input[type="checkbox"] {
+      margin-right: 15px;
+      width: 22px;
+      height: 22px;
+      cursor: pointer;
+      accent-color: #64162D;
+    }
+
+    .radio-option.selected,
+    .checkbox-option.selected {
+      border-color: #64162D;
+      background: rgba(100, 22, 45, 0.05);
+    }
+
+    .industry-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 16px;
+      margin-top: 15px;
+    }
+
+    .industry-card {
+      padding: 24px;
+      border: 2px solid #D1D5DB;
+      border-radius: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: white;
+    }
+
+    .industry-card:hover {
+      border-color: #64162D;
+      transform: translateY(-2px);
+    }
+
+    .industry-card.selected {
+      border-color: #64162D;
+      background: rgba(100, 22, 45, 0.05);
+    }
+
+    .industry-icon {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .industry-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #374151;
+      text-transform: uppercase;
+    }
+
+    .range-container {
+      margin-top: 15px;
+    }
+
+    .range-value {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .range-number {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 1.5rem;
+      color: #64162D;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 8px;
+      border-radius: 10px;
+      background: #E5E7EB;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #64162D;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(100, 22, 45, 0.3);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #64162D;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 2px 8px rgba(100, 22, 45, 0.3);
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 50px;
+      padding-top: 30px;
+      border-top: 2px solid #E5E7EB;
+    }
+
+    .btn {
+      padding: 16px 40px;
+      border: none;
+      border-radius: 16px;
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      min-width: 140px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #64162D 0%, #8E2442 100%);
+      color: white;
+      box-shadow: 0 4px 12px rgba(100, 22, 45, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(100, 22, 45, 0.4);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #64162D;
+      border: 2px solid #64162D;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(100, 22, 45, 0.05);
+    }
+
+    .btn-link {
+      background: none;
+      border: none;
+      color: #64162D;
+      text-decoration: underline;
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      min-width: auto;
+    }
+
+    .btn-link:hover {
+      color: #8E2442;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .info-box {
+      background: rgba(142, 109, 47, 0.08);
+      border: 2px solid #8E6D2F;
+      border-radius: 16px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+
+    .info-box-title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      color: #8E6D2F;
+      margin-bottom: 8px;
+      font-size: 1rem;
+    }
+
+    .info-box-text {
+      color: #374151;
+      font-size: 0.95rem;
+    }
+
+    .tip-box {
+      margin-top: 15px;
+      padding: 15px;
+      background: rgba(100, 22, 45, 0.05);
+      border-left: 4px solid #64162D;
+      border-radius: 8px;
+    }
+
+    .tip-box p {
+      font-size: 0.9rem;
+      color: #374151;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .examples-box {
+      margin-top: 20px;
+      padding: 20px;
+      background: rgba(6, 95, 70, 0.05);
+      border: 2px solid #065F46;
+      border-radius: 16px;
+    }
+
+    .examples-title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      color: #065F46;
+      margin-bottom: 12px;
+      font-size: 1rem;
+    }
+
+    .example-item {
+      margin-bottom: 8px;
+      padding-left: 20px;
+      position: relative;
+      color: #374151;
+      font-size: 0.9rem;
+    }
+
+    .example-item::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: #065F46;
+      font-weight: 700;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px 15px;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      .card {
+        padding: 30px 20px;
+      }
+
+      .steps-overview {
+        display: none;
+      }
+
+      .industry-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .tooltip:hover::after {
+        left: auto;
+        right: 30px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="https://2bahead.com/svg/header/logo-dark.svg" alt="2b AHEAD Logo" class="logo">
+      <h1>KI-Onboarding Assessment</h1>
+      <p class="subtitle">Optimiert für alle 5 Personas - von Anfänger bis Fortgeschritten</p>
+      <span class="version-badge">✨ Version 2.0 - Mit Persona-Feedback verbessert</span>
+    </div>
+
+    <div class="progress-container">
+      <div class="progress-info">
+        <span class="progress-label" id="progress-label">Modul 0 von 7</span>
+        <span class="progress-percent" id="progress-percent">0%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <div class="steps-overview" id="steps-overview">
+        <div class="step-indicator active" data-step="0">Modul 0<br>Vorkenntnisse</div>
+        <div class="step-indicator" data-step="1">Modul 1<br>Profil</div>
+        <div class="step-indicator" data-step="2">Modul 2<br>Status Quo</div>
+        <div class="step-indicator" data-step="3">Modul 3<br>Technik</div>
+        <div class="step-indicator" data-step="4">Modul 4<br>Kompetenz</div>
+        <div class="step-indicator" data-step="5">Modul 5<br>Ziele</div>
+        <div class="step-indicator" data-step="6">Modul 6<br>Ressourcen</div>
+        <div class="step-indicator" data-step="7">Modul 7<br>Use-Case</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <!-- MODUL 0: VORKENNTNISSE (ERWEITERT) -->
+      <div id="step-0" class="step-content">
+        <span class="module-badge new">✨ Verbessert</span>
+        <h2 class="module-title">Modul 0: Über Dich</h2>
+
+        <div class="info-box">
+          <div class="info-box-title">💡 Warum diese Fragen?</div>
+          <div class="info-box-text">
+            Diese 4 Fragen helfen uns, den Fragebogen auf deine Situation anzupassen und dir später die passenden Use-Cases zu empfehlen.
+          </div>
+        </div>
+
+        <div class="question-group">
+          <label class="question-label">
+            Q0.1: Arbeitest du alleine oder im Team?
+          </label>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="q0_1_solo" value="solo">
+              <span><strong>Solo-Selbstständig:</strong> Ich arbeite alleine und bin für alle Entscheidungen selbst verantwortlich</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q0_1_solo" value="team">
+              <span><strong>Im Team/Unternehmen:</strong> Ich arbeite mit Kollegen zusammen oder in einer Organisation</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="question-group">
+          <label class="question-label">
+            Q0.2: Wie würdest du deine persönlichen KI-Kenntnisse beschreiben?
+          </label>
+          <span class="question-help">Wichtig: Es geht um DEINE Erfahrung, nicht die deines Teams/Unternehmens</span>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="q0_2_experience" value="0">
+              <span>Ich habe noch nie mit KI-Tools gearbeitet</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q0_2_experience" value="1">
+              <span>Ich habe Videos gesehen oder Artikel gelesen, aber noch nicht selbst genutzt</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q0_2_experience" value="2">
+              <span>Ich habe ChatGPT/Claude ein paar Mal ausprobiert</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q0_2_experience" value="3">
+              <span>Ich experimentiere regelmäßig mit verschiedenen KI-Tools</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q0_2_experience" value="4">
+              <span>Ich habe bereits eigene Workflows, Automationen oder Apps gebaut</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="question-group">
+          <label class="question-label">
+            Q0.3: Welche KI-Tools hast du bereits genutzt? (Mehrfachauswahl)
+          </label>
+          <div class="checkbox-group">
+            <label class="checkbox-option">
+              <input type="checkbox" name="q0_3_tools" value="chatgpt">
+              <span>ChatGPT</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="q0_3_tools" value="claude">
+              <span>Claude</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="q0_3_tools" value="gemini">
+              <span>Gemini (Google)</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="q0_3_tools" value="copilot">
+              <span>Microsoft Copilot</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="q0_3_tools" value="midjourney">
+              <span>Midjourney / DALL-E (Bild-KI)</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="q0_3_tools" value="other">
+              <span>Andere Tools</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="q0_3_tools" value="none">
+              <span>Noch keine Tools genutzt</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="question-group">
+          <label class="question-label">
+            Q0.4: Hast du Einschränkungen bei der Tool-Nutzung?
+            <span class="tooltip" data-tooltip="Wichtig für unsere Empfehlungen: Wenn du nur bestimmte Tools nutzen darfst, zeigen wir dir im Dashboard nur Use-Cases, die damit funktionieren.">?</span>
+          </label>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="q0_4_restrictions" value="none">
+              <span>Keine Einschränkungen - ich kann alle Tools nutzen</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q0_4_restrictions" value="microsoft">
+              <span>Nur Microsoft Copilot erlaubt (Firmenvorgabe)</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q0_4_restrictions" value="google">
+              <span>Nur Google Gemini erlaubt (Firmenvorgabe)</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q0_4_restrictions" value="free">
+              <span>Nur kostenlose Tools (kein Budget für kostenpflichtige)</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q0_4_restrictions" value="blocked">
+              <span>KI-Tools sind bei uns komplett blockiert/verboten</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODUL 1-6: Unverändert, nur mit Tooltips ergänzt -->
+      <div id="step-1" class="step-content hidden">
+        <span class="module-badge">Modul 1</span>
+        <h2 class="module-title">Profil & Branche</h2>
+
+        <div class="question-group">
+          <label class="question-label">Q1.1: Unternehmens-Website (Optional)</label>
+          <input type="url" class="input-text" placeholder="https://www.firma.de">
+        </div>
+
+        <div class="question-group">
+          <label class="question-label">Q1.2: Wie viele Mitarbeiter hat dein Unternehmen?</label>
+          <select class="input-select">
+            <option>Solo-Selbstständig (nur ich)</option>
+            <option>2-10 Mitarbeiter</option>
+            <option>11-50 Mitarbeiter</option>
+            <option>51-250 Mitarbeiter</option>
+            <option>251-1000 Mitarbeiter</option>
+            <option>Über 1000 Mitarbeiter</option>
+          </select>
+        </div>
+
+        <div class="question-group">
+          <label class="question-label">Q1.3: Branche</label>
+          <div class="industry-grid">
+            <div class="industry-card">
+              <span class="industry-icon">💻</span>
+              <div class="industry-label">Technologie & IT</div>
+            </div>
+            <div class="industry-card">
+              <span class="industry-icon">🏦</span>
+              <div class="industry-label">Finanzen & Banken</div>
+            </div>
+            <div class="industry-card">
+              <span class="industry-icon">🏥</span>
+              <div class="industry-label">Gesundheit & Medizin</div>
+            </div>
+            <div class="industry-card">
+              <span class="industry-icon">🛒</span>
+              <div class="industry-label">Handel & E-Commerce</div>
+            </div>
+            <div class="industry-card">
+              <span class="industry-icon">🏭</span>
+              <div class="industry-label">Industrie & Produktion</div>
+            </div>
+            <div class="industry-card">
+              <span class="industry-icon">🤝</span>
+              <div class="industry-label">Dienstleistungen</div>
+            </div>
+            <div class="industry-card">
+              <span class="industry-icon">📊</span>
+              <div class="industry-label">Beratung</div>
+            </div>
+            <div class="industry-card">
+              <span class="industry-icon">✨</span>
+              <div class="industry-label">Sonstige</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="step-2" class="step-content hidden">
+        <span class="module-badge">Modul 2</span>
+        <h2 class="module-title">Strategischer Status Quo</h2>
+
+        <div class="question-group">
+          <label class="question-label">
+            Q2.1: Aktueller KI-Reifegrad (deines Unternehmens oder deiner Situation)
+            <span class="tooltip" data-tooltip="Falls du solo arbeitest: Wie ist DEIN aktueller Status? Falls im Team: Wie ist der Status des Unternehmens?">?</span>
+          </label>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="q2_1" value="1">
+              <span><strong>Level 1 - NO AI (Noch nicht gestartet):</strong> KI ist noch nicht im Einsatz oder wird kaum genutzt</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q2_1" value="2">
+              <span><strong>Level 2 - KI-AWARE (Erste Experimente):</strong> Einzelne Personen experimentieren privat mit ChatGPT, keine offiziellen Guidelines</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q2_1" value="3">
+              <span><strong>Level 3 - KI-ENABLING (Aktiv genutzt):</strong> KI-Tools sind offiziell eingeführt (z.B. Copilot), erste SOPs und Guidelines vorhanden</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q2_1" value="4">
+              <span><strong>Level 4 - KI-FIRST (Täglich im Einsatz):</strong> KI ist in allen Bereichen integriert, messbare Effizienzsteigerungen</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q2_1" value="5">
+              <span><strong>Level 5 - KI-NATIVE (Geschäftsmodell):</strong> Das Geschäftsmodell basiert auf KI, Custom Agents im Einsatz</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="question-group">
+          <label class="question-label">Q2.2: Digitalisierungsgrad</label>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="q2_2" value="analog">
+              <span>Analog (hauptsächlich Papier)</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q2_2" value="teilweise">
+              <span>Teilweise digital (Mix aus Papier und Software)</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q2_2" value="fortgeschritten">
+              <span>Fortgeschritten (meiste Prozesse digital)</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q2_2" value="vollstaendig">
+              <span>Vollständig digital (paperless)</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="question-group">
+          <label class="question-label">
+            Q2.3: Dokumentationsgrad
+            <span class="tooltip" data-tooltip="SOPs = Standard Operating Procedures = Schriftliche Arbeitsanweisungen. Wie gut sind eure Prozesse dokumentiert?">?</span>
+          </label>
+          <select class="input-select">
+            <option>Keine Dokumentation (Alles im Kopf)</option>
+            <option>Grundlegende Notizen</option>
+            <option>Moderater Grad (Teilweise SOPs)</option>
+            <option>Vollständige SOP-Struktur</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="step-3" class="step-content hidden">
+        <span class="module-badge">Modul 3</span>
+        <h2 class="module-title">Technik & Sicherheit</h2>
+
+        <div class="question-group">
+          <label class="question-label">Q3.1: Technisches Ökosystem (Mehrfachauswahl möglich)</label>
+          <div class="checkbox-group">
+            <label class="checkbox-option">
+              <input type="checkbox" name="q3_1" value="microsoft">
+              <span>Ⓜ️ Microsoft 365</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="q3_1" value="google">
+              <span>🌐 Google Workspace</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="q3_1" value="apple">
+              <span>🍎 Apple / iCloud</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="q3_1" value="mixed">
+              <span>⚡ Gemischt / Best-of-Breed</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="question-group">
+          <label class="question-label">Q3.2: Top 5 Software (die du am meisten nutzt)</label>
+          <textarea class="input-textarea" placeholder="z.B. CRM, ERP, Slack, Zoom, Notion, etc..."></textarea>
+        </div>
+
+        <div class="question-group">
+          <label class="question-label">
+            Q3.3: Verarbeitete Daten (Mehrfachauswahl)
+            <span class="tooltip" data-tooltip="Wichtig für Compliance: Je sensibler die Daten, desto wichtiger sind DSGVO-konforme Tools und sichere Workflows.">?</span>
+          </label>
+          <div class="checkbox-group">
+            <label class="checkbox-option">
+              <input type="checkbox" name="q3_3" value="marketing">
+              <span>Marketing & Website-Daten</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="q3_3" value="secrets">
+              <span>Interne Geschäftsgeheimnisse</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="q3_3" value="personal">
+              <span>Personenbezogene Kundendaten</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="q3_3" value="regulated">
+              <span>Regulierte Daten (Finanz/Gesundheit)</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div id="step-4" class="step-content hidden">
+        <span class="module-badge">Modul 4</span>
+        <h2 class="module-title">Kompetenz & Kultur</h2>
+
+        <div class="question-group">
+          <label class="question-label">Q4.1: Team-Stimmung gegenüber KI (falls du im Team arbeitest)</label>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="q4_1" value="solo">
+              <span>Ich arbeite solo (nicht relevant)</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q4_1" value="ablehnung">
+              <span>Ablehnung / Skepsis</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q4_1" value="neutral">
+              <span>Neutral</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q4_1" value="neugierig">
+              <span>Neugierig / Interessiert</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q4_1" value="euphorie">
+              <span>Euphorie / Sehr motiviert</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="question-group">
+          <label class="question-label">
+            Q4.2: Kompetenz - Prompting
+            <span class="tooltip" data-tooltip="Prompting = Das Formulieren von Anfragen an KI. Wie gut kannst du/dein Team KI-Anfragen so formulieren, dass gute Ergebnisse rauskommen?">?</span>
+          </label>
+          <span class="question-help">Falls du solo arbeitest: Schätze DEINE Kompetenz. Im Team: Durchschnitt deiner Kollegen</span>
+          <div class="range-container">
+            <div class="range-value">
+              <span>Level:</span>
+              <span class="range-number" id="range-llm">5</span>
+              <span>/10</span>
+            </div>
+            <input type="range" min="1" max="10" value="5" id="skill-llm">
+          </div>
+        </div>
+
+        <div class="question-group">
+          <label class="question-label">
+            Q4.3: Kompetenz - Automatisierung
+            <span class="tooltip" data-tooltip="Erfahrung mit Tools wie Make, n8n, Zapier, PowerAutomate oder Python für Automationen.">?</span>
+          </label>
+          <span class="question-help">Falls du solo arbeitest: Schätze DEINE Kompetenz. Im Team: Durchschnitt deiner Kollegen</span>
+          <div class="range-container">
+            <div class="range-value">
+              <span>Level:</span>
+              <span class="range-number" id="range-automation">3</span>
+              <span>/10</span>
+            </div>
+            <input type="range" min="1" max="10" value="3" id="skill-automation">
+          </div>
+        </div>
+
+        <div class="question-group">
+          <label class="question-label">
+            Q4.4: Kompetenz - Technik / APIs
+            <span class="tooltip" data-tooltip="API = Application Programming Interface = Schnittstellen zwischen verschiedenen Software-Systemen. Technisches Verständnis davon, wie man Tools miteinander verbindet.">?</span>
+          </label>
+          <span class="question-help">Falls du solo arbeitest: Schätze DEINE Kompetenz. Im Team: Durchschnitt deiner Kollegen</span>
+          <div class="range-container">
+            <div class="range-value">
+              <span>Level:</span>
+              <span class="range-number" id="range-technical">3</span>
+              <span>/10</span>
+            </div>
+            <input type="range" min="1" max="10" value="3" id="skill-technical">
+          </div>
+        </div>
+      </div>
+
+      <div id="step-5" class="step-content hidden">
+        <span class="module-badge">Modul 5</span>
+        <h2 class="module-title">Ziele & Fokus</h2>
+
+        <div class="question-group">
+          <label class="question-label">Q5.1: Primärer Fokus (Mehrfachauswahl möglich)</label>
+          <div class="checkbox-group">
+            <label class="checkbox-option">
+              <input type="checkbox" name="q5_1" value="efficiency">
+              <span>⚙️ <strong>EFFIZIENZ</strong> - Prozesse beschleunigen & Kosten senken</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="q5_1" value="innovation">
+              <span>💡 <strong>INNOVATION</strong> - Neue Produkte & Geschäftsmodelle</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="question-group">
+          <label class="question-label">Q5.2: Welche Bereiche haben für dich/dein Unternehmen das größte KI-Potenzial? (Mehrfachauswahl, max. 3)</label>
+          <span class="question-help">Diese Bereiche nutzen wir für die Use-Case-Empfehlungen im Dashboard</span>
+          <div class="checkbox-group">
+            <label class="checkbox-option">
+              <input type="checkbox" name="q5_2" value="vertrieb">
+              <span>💼 Vertrieb & Lead-Generierung</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="q5_2" value="marketing">
+              <span>📱 Marketing & Content</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="q5_2" value="support">
+              <span>🎧 Kundensupport & Service</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="q5_2" value="recherche">
+              <span>🔍 Recherche & Analyse</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="q5_2" value="prozesse">
+              <span>⚙️ Prozess-Automatisierung</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="q5_2" value="agenten">
+              <span>🤖 Agenten & Multi-Tool-Workflows</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="q5_2" value="hr">
+              <span>👥 HR & Recruiting</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="q5_2" value="produkt">
+              <span>🚀 Produkt-Entwicklung</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="q5_2" value="verwaltung">
+              <span>📋 Verwaltung & Organisation</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="q5_2" value="it">
+              <span>💻 IT & Entwicklung</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="q5_2" value="logistik">
+              <span>📦 Logistik & Operations</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" name="q5_2" value="strategie">
+              <span>🎯 Strategie & Planung</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="question-group">
+          <label class="question-label">Q5.3: Die größte Hürde für KI-Adoption (Optional)</label>
+          <textarea class="input-textarea" placeholder="Was hält dich aktuell am meisten auf?..."></textarea>
+        </div>
+      </div>
+
+      <div id="step-6" class="step-content hidden">
+        <span class="module-badge">Modul 6</span>
+        <h2 class="module-title">Ressourcen & Umsetzung</h2>
+
+        <div class="question-group">
+          <label class="question-label">Q6.1: Zeit-Investment pro Woche</label>
+          <span class="question-help">💡 Für den Start reichen 2-4h, für aktive Nutzung 4-8h</span>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="q6_1" value="lt2">
+              <span>&lt;2h pro Woche</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q6_1" value="2-4">
+              <span>2-4h pro Woche</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q6_1" value="4-8">
+              <span>4-8h pro Woche</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q6_1" value="gt8">
+              <span>&gt;8h pro Woche</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="question-group">
+          <label class="question-label">Q6.2: Persönliches Tool-Budget (falls du selbst Tools buchen darfst)</label>
+          <span class="question-help">💡 Für den Start reichen 50-100€/Monat (ChatGPT Plus, Claude Pro)</span>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="q6_2_budget" value="0">
+              <span>0€ (Meine Firma zahlt / Ich nutze nur kostenlose Tools)</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q6_2_budget" value="slider">
+              <span>Ich habe ein Budget:</span>
+            </label>
+          </div>
+          <div class="range-container" id="budget-slider" style="display: none;">
+            <div class="range-value">
+              <span>Budget:</span>
+              <span class="range-number" id="range-budget">100</span>
+              <span>€ / Monat</span>
+            </div>
+            <input type="range" min="20" max="500" step="20" value="100" id="monthly-budget">
+          </div>
+        </div>
+
+        <div class="question-group">
+          <label class="question-label">Q6.3: Umsetzungs-Stil</label>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="q6_3" value="diy">
+              <span><strong>DIY (Selbst):</strong> Ich möchte die Dinge selber technisch umsetzen</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q6_3" value="support">
+              <span><strong>Unterstützung:</strong> Ich habe jemanden im Team oder extern, der mir dabei hilft</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="q6_3" value="fullservice">
+              <span><strong>Freelancer / Service:</strong> Ich bräuchte bei komplexeren Anwendungen Hilfe</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODUL 7: KONKRETER USE-CASE (MIT BEISPIELEN) -->
+      <div id="step-7" class="step-content hidden">
+        <span class="module-badge new">✨ Verbessert</span>
+        <h2 class="module-title">Modul 7: Dein konkreter Use-Case</h2>
+
+        <div class="info-box">
+          <div class="info-box-title">💡 Warum diese Frage?</div>
+          <div class="info-box-text">
+            Wenn du bereits eine konkrete Idee hast, kann unsere KI im Dashboard den passendsten Use-Case aus dem Tech-Stack für dich identifizieren - selbst wenn er nicht zu den Standard-Kategorien passt.
+          </div>
+        </div>
+
+        <div class="question-group">
+          <label class="question-label">
+            Q7.1: Gibt es einen konkreten Use-Case, den du umsetzen möchtest?
+          </label>
+          <span class="question-help">Optional - beschreibe kurz dein konkretes Vorhaben</span>
+          <textarea class="input-textarea" placeholder="Beschreibe deinen Use-Case in 1-2 Sätzen..." style="min-height: 160px;"></textarea>
+
+          <div class="tip-box">
+            <p>
+              <strong>Tipp:</strong> Je konkreter du beschreibst, desto besser kann die KI einen passenden Use-Case empfehlen. Wenn du noch keine Idee hast, lass das Feld einfach leer - wir empfehlen dir basierend auf deinen gewählten Bereichen aus Q5.2 passende Use-Cases.
+            </p>
+          </div>
+
+          <div class="examples-box">
+            <div class="examples-title">💡 Beispiele für konkrete Use-Cases:</div>
+            <div class="example-item"><strong>Vertrieb:</strong> "Ich möchte Leads auf LinkedIn finden, deren Webseite analysieren und automatisch personalisierte E-Mails schreiben"</div>
+            <div class="example-item"><strong>Marketing:</strong> "Ich möchte aus Blog-Artikeln automatisch Social-Media-Posts für LinkedIn, Instagram und X generieren"</div>
+            <div class="example-item"><strong>Support:</strong> "Ich möchte häufig gestellte Fragen aus Kundenanfragen automatisch beantworten lassen"</div>
+            <div class="example-item"><strong>HR:</strong> "Ich möchte Stellenanzeigen automatisch generieren und Bewerbungen vorfiltern"</div>
+            <div class="example-item"><strong>Prozesse:</strong> "Ich möchte Excel-Listen automatisch mit zusätzlichen Informationen anreichern (z.B. E-Mail-Adressen finden)"</div>
+            <div class="example-item"><strong>Agenten:</strong> "Ich möchte einen kompletten Workflow bauen: Lead finden → Anreichern → Anschreiben - alles auf Knopfdruck"</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="buttons">
+        <button class="btn btn-secondary" id="btn-back" style="visibility: hidden;">Zurück</button>
+        <button class="btn btn-primary" id="btn-next">Weiter</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentStep = 0;
+    const totalSteps = 8; // 0-7
+
+    // Range slider updates
+    document.getElementById('skill-llm')?.addEventListener('input', (e) => {
+      document.getElementById('range-llm').textContent = e.target.value;
+    });
+
+    document.getElementById('skill-automation')?.addEventListener('input', (e) => {
+      document.getElementById('range-automation').textContent = e.target.value;
+    });
+
+    document.getElementById('skill-technical')?.addEventListener('input', (e) => {
+      document.getElementById('range-technical').textContent = e.target.value;
+    });
+
+    document.getElementById('monthly-budget')?.addEventListener('input', (e) => {
+      document.getElementById('range-budget').textContent = e.target.value;
+    });
+
+    // Budget slider visibility
+    document.querySelectorAll('input[name="q6_2_budget"]').forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        const slider = document.getElementById('budget-slider');
+        if (e.target.value === 'slider') {
+          slider.style.display = 'block';
+        } else {
+          slider.style.display = 'none';
+        }
+      });
+    });
+
+    // Radio/checkbox styling
+    document.querySelectorAll('.radio-option').forEach(option => {
+      const input = option.querySelector('input[type="radio"]');
+      input.addEventListener('change', () => {
+        option.parentElement.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
+        if (input.checked) option.classList.add('selected');
+      });
+    });
+
+    document.querySelectorAll('.checkbox-option').forEach(option => {
+      const input = option.querySelector('input[type="checkbox"]');
+      input.addEventListener('change', () => {
+        option.classList.toggle('selected', input.checked);
+      });
+    });
+
+    document.querySelectorAll('.industry-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.industry-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+      });
+    });
+
+    // Navigation
+    function updateProgress() {
+      const percent = Math.round((currentStep / totalSteps) * 100);
+      document.getElementById('progress-percent').textContent = percent + '%';
+      document.getElementById('progress-fill').style.width = percent + '%';
+      document.getElementById('progress-label').textContent = `Modul ${currentStep} von ${totalSteps}`;
+
+      // Update step indicators
+      document.querySelectorAll('.step-indicator').forEach((indicator, idx) => {
+        indicator.classList.remove('active', 'completed');
+        if (idx === currentStep) {
+          indicator.classList.add('active');
+        } else if (idx < currentStep) {
+          indicator.classList.add('completed');
+        }
+      });
+
+      // Show/hide back button
+      document.getElementById('btn-back').style.visibility = currentStep > 0 ? 'visible' : 'hidden';
+
+      // Change next button text on last step
+      document.getElementById('btn-next').textContent = currentStep === totalSteps ? 'Analyse starten' : 'Weiter';
+    }
+
+    function showStep(step) {
+      document.querySelectorAll('.step-content').forEach(content => {
+        content.classList.add('hidden');
+      });
+      document.getElementById(`step-${step}`).classList.remove('hidden');
+      updateProgress();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    document.getElementById('btn-next').addEventListener('click', () => {
+      if (currentStep < totalSteps) {
+        currentStep++;
+        showStep(currentStep);
+      } else {
+        alert('🎉 Fragebogen abgeschlossen!\n\nVersion 2.0 Verbesserungen:\n✅ Solo/Team-Unterscheidung\n✅ Tool-Einschränkungen erfasst\n✅ Budget-Option "0€ (Firma zahlt)"\n✅ Tooltips für Fachbegriffe\n✅ Agenten-Bereich hinzugefügt\n✅ Use-Case-Beispiele\n✅ Hilfreiche Tipps\n\nIn der echten App würde jetzt die Analyse starten und dein persönliches Dashboard mit Persona, Top-3 Use-Cases und Sessions angezeigt.');
+      }
+    });
+
+    document.getElementById('btn-back').addEventListener('click', () => {
+      if (currentStep > 0) {
+        currentStep--;
+        showStep(currentStep);
+      }
+    });
+
+    // Initialize
+    updateProgress();
+  </script>
+</body>
+</html>

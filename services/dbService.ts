@@ -1,7 +1,7 @@
 
 import { doc, getDoc, setDoc, getDocs, collection, query, where, deleteDoc } from "firebase/firestore";
 import { db } from "./firebase";
-import { User, Assessment, Analysis, PillarScores } from "../types";
+import { User, Assessment, Analysis, KiPillarScores, ZukunftPillarScores, IstAnalyse, IstAnalyseProfile } from "../types";
 
 export const dbService = {
   async getUser(email: string): Promise<User | null> {
@@ -87,52 +87,103 @@ export const dbService = {
     }
   },
 
+  // ─── Ist-Analyse CRUD ──────────────────────────────────────────
+
+  async getIstAnalyse(userId: string): Promise<IstAnalyse | null> {
+    try {
+      const docRef = doc(db, "istanalysen", userId);
+      const docSnap = await getDoc(docRef);
+      return docSnap.exists() ? docSnap.data() as IstAnalyse : null;
+    } catch (error) {
+      console.error("Error getting ist-analyse:", error);
+      throw new Error("Fehler beim Laden der KI Ist-Analyse. Bitte versuchen Sie es erneut.");
+    }
+  },
+
+  async saveIstAnalyse(istAnalyse: IstAnalyse): Promise<void> {
+    try {
+      await setDoc(doc(db, "istanalysen", istAnalyse.userId), istAnalyse);
+    } catch (error) {
+      console.error("Error saving ist-analyse:", error);
+      throw new Error("Fehler beim Speichern der KI Ist-Analyse. Bitte versuchen Sie es erneut.");
+    }
+  },
+
+  async getIstAnalyseProfile(userId: string): Promise<IstAnalyseProfile | null> {
+    try {
+      const docRef = doc(db, "istanalyse_profiles", userId);
+      const docSnap = await getDoc(docRef);
+      return docSnap.exists() ? docSnap.data() as IstAnalyseProfile : null;
+    } catch (error) {
+      console.error("Error getting ist-analyse profile:", error);
+      throw new Error("Fehler beim Laden des Profils. Bitte versuchen Sie es erneut.");
+    }
+  },
+
+  async saveIstAnalyseProfile(profile: IstAnalyseProfile): Promise<void> {
+    try {
+      await setDoc(doc(db, "istanalyse_profiles", profile.userId), profile);
+    } catch (error) {
+      console.error("Error saving ist-analyse profile:", error);
+      throw new Error("Fehler beim Speichern des Profils. Bitte versuchen Sie es erneut.");
+    }
+  },
+
+  // ─── Daten löschen ────────────────────────────────────────────
+
   async deleteUserFullData(uid: string): Promise<void> {
     try {
       await deleteDoc(doc(db, "users", uid));
       await deleteDoc(doc(db, "assessments", uid));
       await deleteDoc(doc(db, "analyses", uid));
+      await deleteDoc(doc(db, "istanalysen", uid));
+      await deleteDoc(doc(db, "istanalyse_profiles", uid));
     } catch (error) {
       console.error("Error deleting user data:", error);
       throw new Error("Fehler beim Löschen der Benutzerdaten. Bitte versuchen Sie es erneut.");
     }
   },
 
-  async getIndustryAverages(industryId: string): Promise<PillarScores | null> {
+  async getAverageScores(): Promise<{ ki: KiPillarScores; zukunft: ZukunftPillarScores } | null> {
     try {
-      // 1. Get all assessments for this industry
-      const q = query(collection(db, "assessments"), where("industry", "==", industryId));
-      const snapshot = await getDocs(q);
-      const userIds = snapshot.docs.map(doc => doc.data().userId);
-      
-      if (userIds.length === 0) return null;
-
-      // 2. Get all analyses for these users
       const allAnalyses = await this.getAllAnalyses();
-      const relevantAnalyses = allAnalyses.filter(a => userIds.includes(a.userId));
-      
-      if (relevantAnalyses.length === 0) return null;
+      if (allAnalyses.length === 0) return null;
 
-      // 3. Average the scores
-      const sums: PillarScores = { kompetenz: 0, tools: 0, steuerung: 0, produkte: 0, strategie: 0 };
-      relevantAnalyses.forEach(ana => {
-        sums.kompetenz += ana.pillarScores.kompetenz;
-        sums.tools += ana.pillarScores.tools;
-        sums.steuerung += ana.pillarScores.steuerung;
-        sums.produkte += ana.pillarScores.produkte;
-        sums.strategie += ana.pillarScores.strategie;
+      const kiSums: KiPillarScores = { kompetenz: 0, tools: 0, steuerung: 0, zukunft: 0 };
+      const zukunftSums: ZukunftPillarScores = { zukunftsbild: 0, zukunftsstrategie: 0, zukunftskompetenzen: 0, umsetzung: 0 };
+
+      allAnalyses.forEach(ana => {
+        if (ana.kiPillarScores) {
+          kiSums.kompetenz += ana.kiPillarScores.kompetenz || 0;
+          kiSums.tools += ana.kiPillarScores.tools || 0;
+          kiSums.steuerung += ana.kiPillarScores.steuerung || 0;
+          kiSums.zukunft += ana.kiPillarScores.zukunft || 0;
+        }
+        if (ana.zukunftPillarScores) {
+          zukunftSums.zukunftsbild += ana.zukunftPillarScores.zukunftsbild || 0;
+          zukunftSums.zukunftsstrategie += ana.zukunftPillarScores.zukunftsstrategie || 0;
+          zukunftSums.zukunftskompetenzen += ana.zukunftPillarScores.zukunftskompetenzen || 0;
+          zukunftSums.umsetzung += ana.zukunftPillarScores.umsetzung || 0;
+        }
       });
 
-      const count = relevantAnalyses.length;
+      const count = allAnalyses.length;
       return {
-        kompetenz: sums.kompetenz / count,
-        tools: sums.tools / count,
-        steuerung: sums.steuerung / count,
-        produkte: sums.produkte / count,
-        strategie: sums.strategie / count
+        ki: {
+          kompetenz: kiSums.kompetenz / count,
+          tools: kiSums.tools / count,
+          steuerung: kiSums.steuerung / count,
+          zukunft: kiSums.zukunft / count,
+        },
+        zukunft: {
+          zukunftsbild: zukunftSums.zukunftsbild / count,
+          zukunftsstrategie: zukunftSums.zukunftsstrategie / count,
+          zukunftskompetenzen: zukunftSums.zukunftskompetenzen / count,
+          umsetzung: zukunftSums.umsetzung / count,
+        }
       };
     } catch (error) {
-      console.error("Error calculating benchmarks:", error);
+      console.error("Error calculating averages:", error);
       return null;
     }
   }

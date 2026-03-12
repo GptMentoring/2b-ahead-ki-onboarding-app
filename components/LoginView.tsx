@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { User, Role } from '../types';
+import { User } from '../types';
 import { dbService } from '../services/dbService';
 import { LOGO_URL } from '../constants';
 import { Card, Button } from './UIComponents';
@@ -73,11 +73,9 @@ const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
           email: loginEmail,
           firstName: firstName.trim(),
           lastName: lastName.trim(),
-          role: asAdmin ? Role.PM : Role.OWNER,
           createdAt: Date.now(),
           lastLogin: Date.now(),
           assessmentCompleted: false,
-          quickWinCompleted: false,
           isAdmin: asAdmin
         };
         await dbService.saveUser(newUser);

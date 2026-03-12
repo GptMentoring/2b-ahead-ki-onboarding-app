@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { User, Analysis } from './types';
+import { User, Analysis, IstAnalyseProfile } from './types';
 import { dbService } from './services/dbService';
 
 // Import Views
@@ -10,11 +10,13 @@ import AssessmentView from './components/AssessmentView';
 import DashboardView from './components/DashboardView';
 import QuickWinView from './components/QuickWinView';
 import AdminPanelView from './components/AdminPanelView';
+import IstAnalyseView from './components/IstAnalyseView';
 import Layout from './components/Layout';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
+  const [istAnalyseProfile, setIstAnalyseProfile] = useState<IstAnalyseProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -25,6 +27,8 @@ const App: React.FC = () => {
           setUser(u);
           const ana = await dbService.getAnalysis(u.uid);
           setAnalysis(ana);
+          const profile = await dbService.getIstAnalyseProfile(u.uid);
+          setIstAnalyseProfile(profile);
         }
         setIsLoading(false);
       });
@@ -37,18 +41,28 @@ const App: React.FC = () => {
     setUser(u);
     localStorage.setItem('2bahead_session_email', u.email);
     dbService.getAnalysis(u.uid).then(setAnalysis);
+    dbService.getIstAnalyseProfile(u.uid).then(setIstAnalyseProfile);
   };
 
   const handleLogout = () => {
     localStorage.removeItem('2bahead_session_email');
     setUser(null);
     setAnalysis(null);
+    setIstAnalyseProfile(null);
     window.location.hash = '/';
   };
 
   const handleAssessmentComplete = async (ana: Analysis) => {
     setAnalysis(ana);
     const updatedUser = { ...user!, assessmentCompleted: true };
+    await dbService.saveUser(updatedUser);
+    setUser(updatedUser);
+    window.location.hash = '/';
+  };
+
+  const handleIstAnalyseComplete = async (profile: IstAnalyseProfile) => {
+    setIstAnalyseProfile(profile);
+    const updatedUser = { ...user!, istAnalyseCompleted: true };
     await dbService.saveUser(updatedUser);
     setUser(updatedUser);
     window.location.hash = '/';
@@ -63,14 +77,22 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={
             user.assessmentCompleted && analysis ? (
-              <DashboardView user={user} analysis={analysis} onRepeat={() => {
-                const u = { ...user, assessmentCompleted: false };
-                setUser(u);
-                dbService.saveUser(u);
-              }} />
+              <DashboardView
+                user={user}
+                analysis={analysis}
+                istAnalyseProfile={istAnalyseProfile}
+                onRepeat={() => {
+                  const u = { ...user, assessmentCompleted: false };
+                  setUser(u);
+                  dbService.saveUser(u);
+                }}
+              />
             ) : (
               <AssessmentView user={user} onComplete={handleAssessmentComplete} />
             )
+          } />
+          <Route path="/ist-analyse" element={
+            <IstAnalyseView user={user} onComplete={handleIstAnalyseComplete} />
           } />
           <Route path="/quickwin" element={<QuickWinView analysis={analysis} />} />
           <Route path="/admin" element={user.isAdmin ? <AdminPanelView /> : <Navigate to="/" />} />

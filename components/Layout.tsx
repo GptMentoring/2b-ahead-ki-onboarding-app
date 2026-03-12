@@ -3,7 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { User } from '../types';
 import { LOGO_URL } from '../constants';
-import AIHelpAgent from './AIHelpAgent';
+
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -22,7 +22,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
               <div className="h-8 w-[2px] bg-gray-300 hidden md:block"></div>
               <div className="hidden md:flex flex-col">
                 <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em] leading-none mb-1">Mentoring Platform</span>
-                <span className="text-[12px] font-black text-gray-800 tracking-tight">V 2.9 • Modulare Architektur</span>
+                {user.isAdmin && <span className="text-[12px] font-black text-gray-800 tracking-tight">V 2.9 • Modulare Architektur</span>}
               </div>
             </div>
             <div className="flex items-center gap-10">
@@ -49,9 +49,6 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
       <main className="flex-1">
         {children}
       </main>
-      <div className="no-print">
-        <AIHelpAgent context={`User: ${user.firstName}, Admin: ${user.isAdmin}, Status: ${user.assessmentCompleted ? 'Fertig' : 'Assessment'}`} />
-      </div>
     </div>
   );
 };

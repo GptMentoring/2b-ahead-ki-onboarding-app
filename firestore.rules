@@ -64,5 +64,35 @@ service cloud.firestore {
       // Admins can delete analyses
       allow delete: if isAdmin();
     }
+
+    // Ist-Analysen collection (qualitatives Profil)
+    match /istanalysen/{userId} {
+      // Users can read their own Ist-Analyse
+      allow read: if isSignedIn() && isOwner(userId);
+
+      // Users can create/update their own Ist-Analyse
+      allow write: if isSignedIn() && isOwner(userId);
+
+      // Admins can read all Ist-Analysen
+      allow read: if isAdmin();
+
+      // Admins can delete Ist-Analysen
+      allow delete: if isAdmin();
+    }
+
+    // Ist-Analyse Profiles collection (berechnetes Profil)
+    match /istanalyse_profiles/{userId} {
+      // Users can read their own profile
+      allow read: if isSignedIn() && isOwner(userId);
+
+      // Users can create/update their own profile
+      allow write: if isSignedIn() && isOwner(userId);
+
+      // Admins can read all profiles
+      allow read: if isAdmin();
+
+      // Admins can delete profiles
+      allow delete: if isAdmin();
+    }
   }
 }

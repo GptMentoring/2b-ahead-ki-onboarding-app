@@ -1,85 +1,56 @@
 
 import React from 'react';
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Legend } from 'recharts';
-import { PillarScores } from '../types';
-import { PILLAR_NAMES, COLORS } from '../constants';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
+import { COLORS } from '../constants';
 
-interface Props {
-  scores: PillarScores;
-  benchmarkScores?: PillarScores | null;
+interface ScoreRadarProps {
+  scores: Record<string, number>;
+  pillarNames: Record<string, string>;
+  maxScore?: number;
+  color?: string;
+  height?: number;
 }
 
-const PentagonRadar: React.FC<Props> = ({ scores, benchmarkScores }) => {
-  const data = [
-    { 
-      subject: PILLAR_NAMES.kompetenz, 
-      User: scores.kompetenz, 
-      Benchmark: benchmarkScores?.kompetenz || 0,
-      fullMark: 5 
-    },
-    { 
-      subject: PILLAR_NAMES.tools, 
-      User: scores.tools, 
-      Benchmark: benchmarkScores?.tools || 0,
-      fullMark: 5 
-    },
-    { 
-      subject: PILLAR_NAMES.steuerung, 
-      User: scores.steuerung, 
-      Benchmark: benchmarkScores?.steuerung || 0,
-      fullMark: 5 
-    },
-    { 
-      subject: PILLAR_NAMES.produkte, 
-      User: scores.produkte, 
-      Benchmark: benchmarkScores?.produkte || 0,
-      fullMark: 5 
-    },
-    { 
-      subject: PILLAR_NAMES.strategie, 
-      User: scores.strategie, 
-      Benchmark: benchmarkScores?.strategie || 0,
-      fullMark: 5 
-    },
-  ];
+const ScoreRadar: React.FC<ScoreRadarProps> = ({
+  scores,
+  pillarNames,
+  maxScore = 25,
+  color = COLORS.PRIMARY,
+  height = 350,
+}) => {
+  const data = Object.keys(pillarNames).map(key => ({
+    subject: pillarNames[key],
+    score: scores[key] || 0,
+    fullMark: maxScore,
+  }));
 
   return (
-    <div className="w-full h-[400px] min-h-[400px]">
+    <div className="w-full" style={{ height: `${height}px`, minHeight: `${height}px` }}>
       <ResponsiveContainer width="100%" height="100%">
-        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
-          <PolarGrid />
-          <PolarAngleAxis dataKey="subject" tick={{ fill: COLORS.TEXT_DARK, fontSize: 10, fontWeight: 'bold' }} />
-          <PolarRadiusAxis angle={30} domain={[0, 5]} tick={{fontSize: 10}} />
-          
-          {benchmarkScores && (
-            <Radar
-              name="Branchendurchschnitt"
-              dataKey="Benchmark"
-              stroke="#CBD5E0"
-              fill="#CBD5E0"
-              fillOpacity={0.3}
-              strokeDasharray="4 4"
-            />
-          )}
-
-          <Radar
-            name="Ihr Score"
-            dataKey="User"
-            stroke={COLORS.PRIMARY}
-            fill={COLORS.PRIMARY}
-            fillOpacity={0.6}
+        <RadarChart cx="50%" cy="50%" outerRadius="75%" data={data}>
+          <PolarGrid stroke="#e5e7eb" />
+          <PolarAngleAxis
+            dataKey="subject"
+            tick={{ fill: COLORS.TEXT_DARK, fontSize: 10, fontWeight: 'bold' }}
           />
-          
-          {benchmarkScores && (
-            <Legend 
-              verticalAlign="bottom" 
-              wrapperStyle={{ paddingTop: '20px', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }} 
-            />
-          )}
+          <PolarRadiusAxis
+            angle={90}
+            domain={[0, maxScore]}
+            tick={{ fontSize: 9 }}
+            tickCount={6}
+          />
+          <Radar
+            name="Score"
+            dataKey="score"
+            stroke={color}
+            fill={color}
+            fillOpacity={0.5}
+            strokeWidth={2}
+          />
         </RadarChart>
       </ResponsiveContainer>
     </div>
   );
 };
 
-export default PentagonRadar;
+export default ScoreRadar;

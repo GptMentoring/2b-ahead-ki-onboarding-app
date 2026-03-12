@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { User, Assessment, Analysis, QuestionDef } from '../types';
 import { dbService } from '../services/dbService';
 import { buildFullAnalysis } from '../services/mockStore';
@@ -13,6 +13,156 @@ interface AssessmentViewProps {
   user: User;
   onComplete: (a: Analysis) => void;
 }
+
+// ─── Transition-Index: Letzter KI-Step → Erster Zukunft-Step ─────
+// Step 4 = letzter KI-Step (bereich: 'ki'), Step 5 = erster Zukunft-Step (bereich: 'zukunft')
+const BRIDGE_AFTER_STEP = 4;
+
+// ─── MotivationBridge: Übergangsseite KI → Zukunft ──────────────
+interface MotivationBridgeProps {
+  onContinue: () => void;
+  kiStepsCompleted: number;
+  zukunftStepsTotal: number;
+}
+
+const MotivationBridge: React.FC<MotivationBridgeProps> = ({ onContinue, kiStepsCompleted, zukunftStepsTotal }) => (
+  <div className="max-w-4xl mx-auto p-6 md:p-12 pb-32 animate-in fade-in duration-1000">
+    <Card className="p-8 md:p-12 min-h-[450px] flex flex-col items-center justify-center text-center border-2 border-gray-200 shadow-xl relative overflow-hidden">
+      {/* Dekorativer Hintergrund-Kreis */}
+      <div className="absolute top-0 right-0 w-72 h-72 rounded-bl-full pointer-events-none"
+        style={{ backgroundColor: `${COLORS.ZUKUNFT}06` }} />
+      <div className="absolute bottom-0 left-0 w-56 h-56 rounded-tr-full pointer-events-none"
+        style={{ backgroundColor: `${COLORS.PRIMARY}06` }} />
+
+      <div className="z-10 space-y-8 max-w-md">
+        {/* Erfolgs-Badge */}
+        <div
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-white text-xs font-black uppercase tracking-widest"
+          style={{ backgroundColor: COLORS.PRIMARY }}
+        >
+          KI-Readiness abgeschlossen
+        </div>
+
+        <h2 className="text-3xl font-black text-gray-900">
+          Super — dein KI-Teil ist fertig!
+        </h2>
+
+        <p className="text-base text-gray-600 font-bold leading-relaxed">
+          Du hast {kiStepsCompleted} Themenbl&ouml;cke beantwortet. Jetzt geht es um deine{' '}
+          <span className="font-black" style={{ color: COLORS.ZUKUNFT }}>
+            Zukunftsf&auml;higkeit
+          </span>
+          {' '}— wie gut dein Business f&uuml;r die n&auml;chsten 5 Jahre aufgestellt ist.
+        </p>
+
+        <div className="flex items-center justify-center gap-3 text-sm text-gray-500 font-bold">
+          <span>Noch {zukunftStepsTotal} Bl&ouml;cke</span>
+          <span className="text-gray-300">|</span>
+          <span>ca. 8 Minuten</span>
+        </div>
+
+        {/* Visuelle Trennung: KI (burgundy) → Zukunft (blau) */}
+        <div className="flex items-center gap-3 justify-center pt-2">
+          <div className="h-2 w-24 rounded-full" style={{ backgroundColor: COLORS.PRIMARY }} />
+          <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+          </svg>
+          <div className="h-2 w-24 rounded-full" style={{ backgroundColor: COLORS.ZUKUNFT }} />
+        </div>
+
+        <button
+          onClick={onContinue}
+          className="mt-4 px-10 py-4 rounded-2xl text-white font-black text-base tracking-wide shadow-lg hover:shadow-xl transition-all active:scale-95"
+          style={{ backgroundColor: COLORS.ZUKUNFT }}
+        >
+          WEITER ZUR ZUKUNFTS-ANALYSE &rarr;
+        </button>
+      </div>
+    </Card>
+  </div>
+);
+
+// ─── CelebrationScreen: Assessment-Abschluss ────────────────────
+interface CelebrationScreenProps {
+  totalQuestions: number;
+  onFinish: () => void;
+}
+
+const CelebrationScreen: React.FC<CelebrationScreenProps> = ({ totalQuestions, onFinish }) => {
+  const [countdown, setCountdown] = useState(3);
+  const onFinishRef = useRef(onFinish);
+  onFinishRef.current = onFinish;
+
+  useEffect(() => {
+    if (countdown <= 0) {
+      onFinishRef.current();
+      return;
+    }
+    const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [countdown]);
+
+  // Fortschrittsbalken-Breite (3→0 = 0%→100%)
+  const progressPercent = ((3 - countdown) / 3) * 100;
+
+  return (
+    <div className="max-w-4xl mx-auto p-6 md:p-12 pb-32 animate-in fade-in duration-1000">
+      <Card className="p-8 md:p-12 min-h-[500px] flex flex-col items-center justify-center text-center border-2 border-gray-200 shadow-xl relative overflow-hidden">
+        {/* Dekorativer Hintergrund */}
+        <div className="absolute top-0 right-0 w-80 h-80 rounded-bl-full pointer-events-none"
+          style={{ backgroundColor: `${COLORS.SUCCESS}08` }} />
+        <div className="absolute bottom-0 left-0 w-64 h-64 rounded-tr-full pointer-events-none"
+          style={{ backgroundColor: `${COLORS.PRIMARY}06` }} />
+
+        <div className="z-10 space-y-8 max-w-md">
+          {/* Feier-Icon */}
+          <div className="text-6xl animate-bounce">&#127881;</div>
+
+          <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight">
+            Assessment abgeschlossen!
+          </h2>
+
+          <p className="text-base text-gray-600 font-bold leading-relaxed">
+            Du hast <span className="font-black" style={{ color: COLORS.PRIMARY }}>{totalQuestions} Fragen</span> beantwortet.
+            Das war es wert — deine pers&ouml;nliche Auswertung wird jetzt erstellt.
+          </p>
+
+          {/* Countdown / Progress */}
+          <div className="space-y-4 pt-4">
+            <div className="text-sm font-black text-gray-500 uppercase tracking-widest">
+              Dein Dashboard wird vorbereitet...
+            </div>
+
+            {/* Animierter Fortschrittsbalken */}
+            <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden mx-auto max-w-xs">
+              <div
+                className="h-full rounded-full transition-all duration-1000 ease-linear"
+                style={{
+                  width: `${progressPercent}%`,
+                  backgroundColor: COLORS.SUCCESS
+                }}
+              />
+            </div>
+
+            {countdown > 0 ? (
+              <div className="text-4xl font-black" style={{ color: COLORS.SUCCESS }}>
+                {countdown}
+              </div>
+            ) : (
+              <button
+                onClick={onFinish}
+                className="px-10 py-4 rounded-2xl text-white font-black text-base tracking-wide shadow-lg hover:shadow-xl transition-all active:scale-95"
+                style={{ backgroundColor: COLORS.SUCCESS }}
+              >
+                ERGEBNIS ANSEHEN &rarr;
+              </button>
+            )}
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
+};
 
 // ─── Hilfsfunktion: CEC-Vorschau berechnen ──────────────────────
 
@@ -144,6 +294,11 @@ const AssessmentView: React.FC<AssessmentViewProps> = ({ user, onComplete }) => 
   // Speichert welcher Options-Index pro Frage gewählt wurde (für korrekte Darstellung)
   const [selectedIndices, setSelectedIndices] = useState<Record<string, number>>({});
   const [showIntro, setShowIntro] = useState(true);
+  // Q4: Motivation-Bridge zwischen KI und Zukunft
+  const [showBridge, setShowBridge] = useState(false);
+  // Q5: Celebration Screen nach Assessment-Abschluss
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [completedAnalysis, setCompletedAnalysis] = useState<Analysis | null>(null);
   const [form, setForm] = useState<Partial<Assessment>>({
     userId: user.uid,
     status: 'in_progress',
@@ -180,7 +335,14 @@ const AssessmentView: React.FC<AssessmentViewProps> = ({ user, onComplete }) => 
     }
   }, [step]);
 
-  const next = () => setStep(s => Math.min(s + 1, totalSteps - 1));
+  // Q4: Beim Übergang KI→Zukunft die Bridge-Seite anzeigen
+  const next = () => {
+    if (step === BRIDGE_AFTER_STEP) {
+      setShowBridge(true);
+    } else {
+      setStep(s => Math.min(s + 1, totalSteps - 1));
+    }
+  };
   const prev = () => setStep(s => Math.max(s - 1, 0));
 
   // Prüfe ob alle Fragen im aktuellen Step beantwortet sind
@@ -258,7 +420,9 @@ const AssessmentView: React.FC<AssessmentViewProps> = ({ user, onComplete }) => 
 
       await dbService.saveAssessment(finalAssessment);
       await dbService.saveAnalysis(analysis);
-      onComplete(analysis);
+      // Q5: Celebration Screen statt direktem Redirect
+      setCompletedAnalysis(analysis);
+      setShowCelebration(true);
     } catch (error) {
       console.error('Assessment submit error:', error);
       alert('Fehler beim Speichern. Bitte erneut versuchen.');
@@ -269,6 +433,38 @@ const AssessmentView: React.FC<AssessmentViewProps> = ({ user, onComplete }) => 
 
   // Farbe für aktuellen Bereich
   const accentColor = currentStep?.color || COLORS.PRIMARY;
+
+  // Gesamtanzahl beantworteter Fragen (für Celebration Screen)
+  const totalQuestionsAnswered = useMemo((): number => {
+    const kiAnswered = KI_QUESTIONS.filter(q => selectedIndices[q.field as string] !== undefined).length;
+    const bonusAnswered = selectedIndices[KI_BONUS_QUESTION.field as string] !== undefined ? 1 : 0;
+    const zukunftAnswered = ZUKUNFT_QUESTIONS.filter(q => selectedIndices[q.field as string] !== undefined).length;
+    return kiAnswered + bonusAnswered + zukunftAnswered;
+  }, [selectedIndices]);
+
+  // Q5: Celebration Screen nach erfolgreichem Submit
+  if (showCelebration && completedAnalysis) {
+    return (
+      <CelebrationScreen
+        totalQuestions={totalQuestionsAnswered}
+        onFinish={() => onComplete(completedAnalysis)}
+      />
+    );
+  }
+
+  // Q4: Motivation-Bridge zwischen KI und Zukunft
+  if (showBridge) {
+    return (
+      <MotivationBridge
+        onContinue={() => {
+          setShowBridge(false);
+          setStep(BRIDGE_AFTER_STEP + 1);
+        }}
+        kiStepsCompleted={BRIDGE_AFTER_STEP}
+        zukunftStepsTotal={ASSESSMENT_STEPS.filter(s => s.bereich === 'zukunft').length}
+      />
+    );
+  }
 
   // ─── Pre-Assessment Intro Screen (nur beim ersten Mal) ─────────
   if (showIntro) {

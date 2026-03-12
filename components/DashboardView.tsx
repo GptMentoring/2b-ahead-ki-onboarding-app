@@ -132,6 +132,9 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, analysis, istAnalys
         </p>
       </header>
 
+      {/* ─── ROI Highlight (stärkstes Verkaufsargument — above the fold) ─── */}
+      <ROICard analysis={analysis} />
+
       {/* ─── Dual Score Cards ─── */}
       <ScoreCards
         analysis={analysis}
@@ -143,13 +146,20 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, analysis, istAnalys
         onToggleZukunftDetail={() => setShowZukunftDetail(!showZukunftDetail)}
       />
 
-      {/* ─── ROI Highlight ─── */}
-      <ROICard analysis={analysis} />
+      {/* ─── Session-Brücke (Upsell-Chance — above the fold) ─── */}
+      <SessionBridgeCard
+        sessionEmpfehlung={istAnalyseProfile?.sessionEmpfehlung || (analysis.kiScore < 40 ? 'Dienstag' : 'Donnerstag')}
+        potentials={potentials}
+      />
 
-      {/* ─── Zukunft-Risiko ─── */}
-      <ZukunftRisikoCard analysis={analysis} />
+      {/* ─── Top-3 Quick-Wins ─── */}
+      <QuickWinsSection todos={todos} />
 
-      {/* ─── KI Ist-Analyse: CTA oder Profil (above the fold) ─── */}
+      {/* ═══════════════════════════════════════════════════════════
+          SCREEN 2: PERSÖNLICHES PROFIL + STÄRKEN
+          ═══════════════════════════════════════════════════════════ */}
+
+      {/* ─── KI Ist-Analyse: CTA oder Profil ─── */}
       {!user.istAnalyseCompleted ? (
         <Card className="p-6 md:p-8 mb-8 border-2 no-print" style={{ borderColor: COLORS.SUCCESS }}>
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -178,22 +188,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, analysis, istAnalys
         </div>
       ) : null}
 
-      {/* ─── Session-Brücke (immer sichtbar — Score-Fallback wenn keine IstAnalyse) ─── */}
-      <SessionBridgeCard
-        sessionEmpfehlung={istAnalyseProfile?.sessionEmpfehlung || (analysis.kiScore < 40 ? 'Dienstag' : 'Donnerstag')}
-        potentials={potentials}
-      />
-
-      {/* ═══════════════════════════════════════════════════════════
-          SCREEN 2: DEIN PLAN (Empfehlung + Quick-Wins)
-          ═══════════════════════════════════════════════════════════ */}
-
-      {/* ─── Produkt-Empfehlung ─── */}
-      <RecommendationCard analysis={analysis} />
-
-      {/* ─── Top-3 Quick-Wins ─── */}
-      <QuickWinsSection todos={todos} />
-
       {/* ─── Stärken & Potenziale ─── */}
       <StrengthsPotentials strengths={strengths} potentials={potentials} />
 
@@ -212,6 +206,12 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, analysis, istAnalys
           onToggleChecked={toggleChecked}
         />
       </Card>
+
+      {/* ─── Produkt-Empfehlung ─── */}
+      <RecommendationCard analysis={analysis} istAnalyseProfile={istAnalyseProfile || undefined} />
+
+      {/* ─── Zukunft-Risiko ─── */}
+      <ZukunftRisikoCard analysis={analysis} />
 
       {/* ─── Detail Panels (expandable) ─── */}
       <DetailPanels

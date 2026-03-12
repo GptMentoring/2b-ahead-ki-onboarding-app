@@ -1,9 +1,36 @@
 
-import { doc, getDoc, setDoc, getDocs, collection, query, where, deleteDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, getDocs, collection, query, where, deleteDoc, addDoc } from "firebase/firestore";
 import { db } from "./firebase";
 import { User, Assessment, Analysis, KiPillarScores, ZukunftPillarScores, IstAnalyse, IstAnalyseProfile } from "../types";
 
+// ─── Session ID für Tracking ──────────────────────────────────
+function getSessionId(): string {
+  if (typeof window === 'undefined') return 'server';
+  let sid = sessionStorage.getItem('tracking_session');
+  if (!sid) {
+    sid = `s_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    sessionStorage.setItem('tracking_session', sid);
+  }
+  return sid;
+}
+
 export const dbService = {
+  // ─── Analytics Tracking (silent fail — nie den User blocken) ──
+  async trackEvent(userId: string, event: string, data?: Record<string, unknown>): Promise<void> {
+    try {
+      const eventsRef = collection(db, 'analytics_events');
+      await addDoc(eventsRef, {
+        userId,
+        event,
+        data: data || {},
+        timestamp: new Date(),
+        sessionId: getSessionId(),
+      });
+    } catch (e) {
+      console.warn('Tracking failed:', e);
+    }
+  },
+
   async getUser(email: string): Promise<User | null> {
     try {
       const q = query(collection(db, "users"), where("email", "==", email));
@@ -41,6 +68,13 @@ export const dbService = {
   async saveAssessment(assessment: Assessment): Promise<void> {
     try {
       await setDoc(doc(db, "assessments", assessment.userId), assessment);
+      // Track assessment progress
+      if (assessment.status === 'in_progress') {
+        this.trackEvent(assessment.userId, 'assessment_started');
+      }
+      if (assessment.status === 'completed') {
+        this.trackEvent(assessment.userId, 'assessment_step_completed', { step: 'final' });
+      }
     } catch (error) {
       console.error("Error saving assessment:", error);
       throw new Error("Fehler beim Speichern des Assessments. Bitte versuchen Sie es erneut.");
@@ -51,7 +85,12 @@ export const dbService = {
     try {
       const docRef = doc(db, "analyses", userId);
       const docSnap = await getDoc(docRef);
-      return docSnap.exists() ? docSnap.data() as Analysis : null;
+      if (docSnap.exists()) {
+        // Track dashboard view (analysis exists = user sees dashboard)
+        this.trackEvent(userId, 'dashboard_viewed');
+        return docSnap.data() as Analysis;
+      }
+      return null;
     } catch (error) {
       console.error("Error getting analysis:", error);
       throw new Error("Fehler beim Laden der Analyse. Bitte versuchen Sie es erneut.");
@@ -61,6 +100,8 @@ export const dbService = {
   async saveAnalysis(analysis: Analysis): Promise<void> {
     try {
       await setDoc(doc(db, "analyses", analysis.userId), analysis);
+      // Track assessment completed (analysis saved = assessment fully done)
+      this.trackEvent(analysis.userId, 'assessment_completed');
     } catch (error) {
       console.error("Error saving analysis:", error);
       throw new Error("Fehler beim Speichern der Analyse. Bitte versuchen Sie es erneut.");
@@ -103,6 +144,8 @@ export const dbService = {
   async saveIstAnalyse(istAnalyse: IstAnalyse): Promise<void> {
     try {
       await setDoc(doc(db, "istanalysen", istAnalyse.userId), istAnalyse);
+      // Track Ist-Analyse completion
+      this.trackEvent(istAnalyse.userId, 'istanalyse_completed');
     } catch (error) {
       console.error("Error saving ist-analyse:", error);
       throw new Error("Fehler beim Speichern der KI Ist-Analyse. Bitte versuchen Sie es erneut.");
@@ -123,6 +166,8 @@ export const dbService = {
   async saveIstAnalyseProfile(profile: IstAnalyseProfile): Promise<void> {
     try {
       await setDoc(doc(db, "istanalyse_profiles", profile.userId), profile);
+      // Track profile generation
+      this.trackEvent(profile.userId, 'istanalyse_profile_generated', { quadrant: profile.quadrant });
     } catch (error) {
       console.error("Error saving ist-analyse profile:", error);
       throw new Error("Fehler beim Speichern des Profils. Bitte versuchen Sie es erneut.");

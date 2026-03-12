@@ -35,11 +35,33 @@ interface DashboardViewProps {
 // DASHBOARD VIEW — 3-Screen Layout
 // ═══════════════════════════════════════════════════════════════════
 
+// Helper: Kalenderwoche für Checklisten-Key
+const getWeekKey = () => {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 1);
+  const week = Math.ceil(((now.getTime() - start.getTime()) / 86400000 + start.getDay() + 1) / 7);
+  return `${now.getFullYear()}-W${week}`;
+};
+
 const DashboardView: React.FC<DashboardViewProps> = ({ user, analysis, istAnalyseProfile, onRepeat }) => {
   const [assessment, setAssessment] = useState<Assessment | null>(null);
   const [showKiDetail, setShowKiDetail] = useState(false);
   const [showZukunftDetail, setShowZukunftDetail] = useState(false);
-  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
+
+  // Checklisten-Persistence: localStorage mit user-uid + Wochennummer
+  const storageKey = `checklist_${user?.uid}_${getWeekKey()}`;
+  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>(() => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      return saved ? JSON.parse(saved) : {};
+    } catch { return {}; }
+  });
+
+  useEffect(() => {
+    if (Object.keys(checkedItems).length > 0) {
+      localStorage.setItem(storageKey, JSON.stringify(checkedItems));
+    }
+  }, [checkedItems, storageKey]);
 
   const toggleChecked = (key: string) => setCheckedItems(prev => ({ ...prev, [key]: !prev[key] }));
 
@@ -93,7 +115,12 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, analysis, istAnalys
           Persönliche Auswertung
         </span>
         <h1 className="text-4xl md:text-5xl font-black tracking-tight text-gray-900">
-          Hallo {user.firstName}, hier ist dein Status Quo.
+          {analysis.previousKiScore != null
+            ? `Hallo ${user.firstName}, du bist ${analysis.kiScore - analysis.previousKiScore} Punkte gewachsen!`
+            : analysis.cecData?.gesamtErgebnis > 0
+              ? `Hallo ${user.firstName}, dein KI-Potenzial: ${formatEur(analysis.cecData.gesamtErgebnis)} EUR/Jahr`
+              : `Hallo ${user.firstName}, hier ist dein KI-Fahrplan.`
+          }
         </h1>
         {celebrationLine && (
           <p className="text-sm font-black mt-2" style={{ color: COLORS.SUCCESS }}>
@@ -151,13 +178,11 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, analysis, istAnalys
         </div>
       ) : null}
 
-      {/* ─── Session-Brücke ─── */}
-      {istAnalyseProfile?.sessionEmpfehlung && (
-        <SessionBridgeCard
-          sessionEmpfehlung={istAnalyseProfile.sessionEmpfehlung}
-          potentials={potentials}
-        />
-      )}
+      {/* ─── Session-Brücke (immer sichtbar — Score-Fallback wenn keine IstAnalyse) ─── */}
+      <SessionBridgeCard
+        sessionEmpfehlung={istAnalyseProfile?.sessionEmpfehlung || (analysis.kiScore < 40 ? 'Dienstag' : 'Donnerstag')}
+        potentials={potentials}
+      />
 
       {/* ═══════════════════════════════════════════════════════════
           SCREEN 2: DEIN PLAN (Empfehlung + Quick-Wins)

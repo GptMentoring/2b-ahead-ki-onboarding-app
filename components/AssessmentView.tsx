@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { User, Assessment, Analysis, QuestionDef } from '../types';
 import { dbService } from '../services/dbService';
 import { buildFullAnalysis } from '../services/mockStore';
@@ -143,6 +143,7 @@ const AssessmentView: React.FC<AssessmentViewProps> = ({ user, onComplete }) => 
   const [isSubmitting, setIsSubmitting] = useState(false);
   // Speichert welcher Options-Index pro Frage gewählt wurde (für korrekte Darstellung)
   const [selectedIndices, setSelectedIndices] = useState<Record<string, number>>({});
+  const [showIntro, setShowIntro] = useState(true);
   const [form, setForm] = useState<Partial<Assessment>>({
     userId: user.uid,
     status: 'in_progress',
@@ -152,6 +153,13 @@ const AssessmentView: React.FC<AssessmentViewProps> = ({ user, onComplete }) => 
     m3_jahresumsatz: undefined,
     m4_einschraenkungen: '',
   });
+
+  // Re-Assessment erkennen: Wenn bereits eine Analyse existiert, Intro überspringen
+  useEffect(() => {
+    dbService.getAnalysis(user.uid).then(existing => {
+      if (existing) setShowIntro(false);
+    });
+  }, [user.uid]);
 
   const totalSteps = ASSESSMENT_STEPS.length;
   const currentStep = ASSESSMENT_STEPS[step];
@@ -185,6 +193,17 @@ const AssessmentView: React.FC<AssessmentViewProps> = ({ user, onComplete }) => 
     // Für alle anderen Steps: Jede Frage muss beantwortet sein
     return currentQuestions.every(q => selectedIndices[q.field as string] !== undefined);
   }, [step, form.m1_solo, form.m3_jahresumsatz, currentQuestions, selectedIndices, totalSteps]);
+
+  // Anzahl unbeantworteter Fragen im aktuellen Step (für Button-Text)
+  const unansweredCount = useMemo((): number => {
+    if (step === 0) {
+      let count = 0;
+      if (!form.m1_solo) count++;
+      if (!form.m3_jahresumsatz) count++;
+      return count;
+    }
+    return currentQuestions.filter(q => selectedIndices[q.field as string] === undefined).length;
+  }, [step, form.m1_solo, form.m3_jahresumsatz, currentQuestions, selectedIndices]);
 
   // Handler für Frage-Auswahl (setzt Punkte + CEC-Hilfswerte + Options-Index)
   const handleQuestionSelect = (question: QuestionDef, optionIndex: number, points: number, cecMittelwert?: number) => {
@@ -251,6 +270,44 @@ const AssessmentView: React.FC<AssessmentViewProps> = ({ user, onComplete }) => 
   // Farbe für aktuellen Bereich
   const accentColor = currentStep?.color || COLORS.PRIMARY;
 
+  // ─── Pre-Assessment Intro Screen (nur beim ersten Mal) ─────────
+  if (showIntro) {
+    return (
+      <div className="max-w-4xl mx-auto p-6 md:p-12 pb-32 animate-in fade-in duration-1000">
+        <div className="max-w-lg mx-auto text-center py-12 px-6">
+          <h2 className="text-2xl font-black text-gray-900 mb-6">
+            In 15 Minuten erfährst du:
+          </h2>
+          <div className="space-y-4 text-left mb-8">
+            <div className="flex items-start gap-3">
+              <span className="text-lg">📊</span>
+              <p className="text-sm font-bold text-gray-700">Deinen KI-Reifegrad — auf einer Skala von 1-10, mit konkreter Einordnung</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="text-lg">💰</span>
+              <p className="text-sm font-bold text-gray-700">Dein ROI-Potenzial — wie viel EUR/Jahr du durch KI einsparen oder generieren kannst</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="text-lg">🎯</span>
+              <p className="text-sm font-bold text-gray-700">Deinen persönlichen Aktionsplan — Quick-Wins für diese Woche + 4-Wochen-Fahrplan</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="text-lg">🔮</span>
+              <p className="text-sm font-bold text-gray-700">Deine Zukunfts-Readiness — wie gut dein Business für die nächsten 5 Jahre aufgestellt ist</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setShowIntro(false)}
+            className="px-8 py-4 rounded-2xl text-white font-black text-base tracking-wide shadow-lg hover:shadow-xl transition-all"
+            style={{ backgroundColor: '#64162D' }}
+          >
+            ASSESSMENT STARTEN →
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto p-6 md:p-12 pb-32 animate-in fade-in duration-1000">
       {/* ─── Progress Header ─── */}
@@ -262,6 +319,9 @@ const AssessmentView: React.FC<AssessmentViewProps> = ({ user, onComplete }) => 
               {' — '}{currentStep?.title}
             </span>
             <h2 className="text-4xl font-black mt-2 text-gray-900">Readiness Assessment</h2>
+            <p className="text-sm text-gray-500 font-bold mt-1">
+              ⏱ ca. 15–20 Minuten · {totalSteps} Fragen-Blöcke · Dein Fortschritt wird gespeichert
+            </p>
           </div>
           <div className="text-right">
             <span className="text-2xl font-black text-gray-900">{Math.round((step / (totalSteps - 1)) * 100)}%</span>
@@ -443,8 +503,8 @@ const AssessmentView: React.FC<AssessmentViewProps> = ({ user, onComplete }) => 
                 />
               ))}
 
-              {/* CEC Preview (nach Tools-Step) */}
-              {step === 2 && <CECPreview form={form} />}
+              {/* CEC Preview — ab Tools-Step auf ALLEN folgenden Steps sichtbar (stärkster Motivator) */}
+              {step >= 2 && <CECPreview form={form} />}
             </div>
           )}
 
@@ -523,7 +583,7 @@ const AssessmentView: React.FC<AssessmentViewProps> = ({ user, onComplete }) => 
               style={{ backgroundColor: isStepComplete ? accentColor : '#D1D5DB' }}
               disabled={!isStepComplete}
             >
-              {isStepComplete ? 'WEITER' : 'BITTE ALLE FRAGEN BEANTWORTEN'}
+              {isStepComplete ? 'WEITER' : `NOCH ${unansweredCount} FRAGEN OFFEN`}
             </Button>
           ) : (
             <Button

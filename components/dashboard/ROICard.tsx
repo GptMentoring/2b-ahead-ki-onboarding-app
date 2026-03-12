@@ -75,38 +75,56 @@ const ROICard: React.FC<ROICardProps> = ({ analysis }) => {
                   {formatEur(cec.gesamtErgebnis)}
                   <span className="text-lg text-amber-700">/Jahr</span>
                 </div>
+                {/* Trust-Anker: Kurze Erklärung woher die Zahl kommt */}
+                <p className="text-[9px] text-gray-400 font-bold mt-2 leading-relaxed">
+                  Berechnet aus deinen Angaben: Stundensatz &times; eingesparte Stunden +
+                  direkte Kosteneinsparung + gesch&auml;tzte Umsatzsteigerung.{' '}
+                  <button
+                    onClick={() => setShowBreakdown(!showBreakdown)}
+                    className="underline hover:text-gray-600 transition-colors"
+                  >
+                    {showBreakdown ? 'Weniger' : 'Berechnung anzeigen'}
+                  </button>
+                </p>
               </div>
             </div>
 
-            {/* Summary Boxes */}
-            <div className="grid grid-cols-2 md:flex md:items-center gap-3 md:gap-4">
-              {cec.zeiteinsparungEurJahr > 0 && (
-                <div className="text-center px-4 py-2 bg-white/80 rounded-xl border border-amber-200">
-                  <div className="text-[9px] font-black text-gray-500 uppercase">Zeiteinsparung</div>
-                  <div className="text-sm font-black text-amber-800">{formatEur(cec.zeiteinsparungEurJahr)}</div>
-                </div>
-              )}
-              {cec.kosteneinsparungEurJahr > 0 && (
-                <div className="text-center px-4 py-2 bg-white/80 rounded-xl border border-amber-200">
-                  <div className="text-[9px] font-black text-gray-500 uppercase">Kosteneinsparung</div>
-                  <div className="text-sm font-black text-amber-800">{formatEur(cec.kosteneinsparungEurJahr)}</div>
-                </div>
-              )}
-              {cec.umsatzsteigerungEurJahr > 0 && (
-                <div className="text-center px-4 py-2 bg-white/80 rounded-xl border border-amber-200">
-                  <div className="text-[9px] font-black text-gray-500 uppercase">Umsatzsteigerung</div>
-                  <div className="text-sm font-black text-amber-800">{formatEur(cec.umsatzsteigerungEurJahr)}</div>
-                </div>
-              )}
-              {cec.kiAusgabenJahr > 0 && (
-                <div className="text-center px-5 py-2 bg-white rounded-xl border-2 border-amber-300">
-                  <div className="text-[9px] font-black text-gray-500 uppercase">ROI</div>
-                  <div className={`text-2xl font-black ${cec.roi >= 1 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                    {cec.roi.toFixed(1)}x
+            {/* Summary Boxes — nur Werte > 0 anzeigen */}
+            {(cec.zeiteinsparungEurJahr > 0 || cec.kosteneinsparungEurJahr > 0 || cec.umsatzsteigerungEurJahr > 0 || cec.kiAusgabenJahr > 0) ? (
+              <div className="grid grid-cols-2 md:flex md:items-center gap-3 md:gap-4">
+                {cec.zeiteinsparungEurJahr > 0 && (
+                  <div className="text-center px-4 py-2 bg-white/80 rounded-xl border border-amber-200">
+                    <div className="text-[9px] font-black text-gray-500 uppercase">Zeiteinsparung</div>
+                    <div className="text-sm font-black text-amber-800">{formatEur(cec.zeiteinsparungEurJahr)}</div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+                {cec.kosteneinsparungEurJahr > 0 && (
+                  <div className="text-center px-4 py-2 bg-white/80 rounded-xl border border-amber-200">
+                    <div className="text-[9px] font-black text-gray-500 uppercase">Kosteneinsparung</div>
+                    <div className="text-sm font-black text-amber-800">{formatEur(cec.kosteneinsparungEurJahr)}</div>
+                  </div>
+                )}
+                {cec.umsatzsteigerungEurJahr > 0 && (
+                  <div className="text-center px-4 py-2 bg-white/80 rounded-xl border border-amber-200">
+                    <div className="text-[9px] font-black text-gray-500 uppercase">Umsatzsteigerung</div>
+                    <div className="text-sm font-black text-amber-800">{formatEur(cec.umsatzsteigerungEurJahr)}</div>
+                  </div>
+                )}
+                {cec.kiAusgabenJahr > 0 && (
+                  <div className="text-center px-5 py-2 bg-white rounded-xl border-2 border-amber-300">
+                    <div className="text-[9px] font-black text-gray-500 uppercase">ROI</div>
+                    <div className={`text-2xl font-black ${cec.roi >= 1 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                      {cec.roi.toFixed(1)}x
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Fallback wenn alle Einzelwerte 0 sind */
+              <p className="text-xs text-amber-700 font-bold italic max-w-xs">
+                Beantworte die Wirtschaftlichkeits-Fragen im Assessment f&uuml;r deine pers&ouml;nliche ROI-Berechnung.
+              </p>
+            )}
           </div>
 
           {/* ─── Breakdown Toggle ─── */}

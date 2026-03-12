@@ -1,7 +1,7 @@
 
-import { doc, getDoc, setDoc, getDocs, collection, query, where, deleteDoc, addDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, getDocs, collection, query, where, orderBy, deleteDoc, addDoc } from "firebase/firestore";
 import { db } from "./firebase";
-import { User, Assessment, Analysis, KiPillarScores, ZukunftPillarScores, IstAnalyse, IstAnalyseProfile } from "../types";
+import { User, Assessment, Analysis, KiPillarScores, ZukunftPillarScores, IstAnalyse, IstAnalyseProfile, ScoreHistoryEntry } from "../types";
 
 // ─── Session ID für Tracking ──────────────────────────────────
 function getSessionId(): string {
@@ -102,9 +102,41 @@ export const dbService = {
       await setDoc(doc(db, "analyses", analysis.userId), analysis);
       // Track assessment completed (analysis saved = assessment fully done)
       this.trackEvent(analysis.userId, 'assessment_completed');
+
+      // Append current scores to score_history subcollection
+      try {
+        await addDoc(collection(db, 'score_history', analysis.userId, 'entries'), {
+          kiScore: analysis.kiScore,
+          zukunftScore: analysis.zukunftScore,
+          date: Date.now(),
+        });
+      } catch (historyError) {
+        console.warn('Score history write failed (non-blocking):', historyError);
+      }
     } catch (error) {
       console.error("Error saving analysis:", error);
       throw new Error("Fehler beim Speichern der Analyse. Bitte versuchen Sie es erneut.");
+    }
+  },
+
+  async getScoreHistory(userId: string): Promise<ScoreHistoryEntry[]> {
+    try {
+      const q = query(
+        collection(db, 'score_history', userId, 'entries'),
+        orderBy('date', 'asc')
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(d => {
+        const data = d.data();
+        return {
+          kiScore: data.kiScore,
+          zukunftScore: data.zukunftScore,
+          date: data.date,
+        } as ScoreHistoryEntry;
+      });
+    } catch (error) {
+      console.warn('Score history read failed, returning empty:', error);
+      return [];
     }
   },
 
@@ -186,6 +218,28 @@ export const dbService = {
     } catch (error) {
       console.error("Error deleting user data:", error);
       throw new Error("Fehler beim Löschen der Benutzerdaten. Bitte versuchen Sie es erneut.");
+    }
+  },
+
+  // ─── Checklisten-Persistenz (Cross-Device) ───────────────────
+
+  async getChecklist(userId: string, weekKey: string): Promise<Record<string, boolean>> {
+    try {
+      const docRef = doc(db, 'checklists', `${userId}_${weekKey}`);
+      const snap = await getDoc(docRef);
+      return snap.exists() ? (snap.data() as Record<string, boolean>) : {};
+    } catch (error) {
+      console.warn('Checklist load failed (Firestore):', error);
+      return {};
+    }
+  },
+
+  async saveChecklist(userId: string, weekKey: string, items: Record<string, boolean>): Promise<void> {
+    try {
+      const docRef = doc(db, 'checklists', `${userId}_${weekKey}`);
+      await setDoc(docRef, items, { merge: true });
+    } catch (error) {
+      console.warn('Checklist save failed (Firestore):', error);
     }
   },
 

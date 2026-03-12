@@ -2,8 +2,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { User } from '../types';
-import { LOGO_URL } from '../constants';
+import { LOGO_URL, COLORS } from '../constants';
 import AIHelpAgent from './AIHelpAgent';
+import { IconChart } from './Icons';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -24,10 +25,18 @@ const Layout: React.FC<LayoutProps> = ({ children, user, onLogout }) => {
               <div className="hidden md:flex flex-col">
                 <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em] leading-none mb-1">Mentoring Platform</span>
                 {/* FIX S5: Versionsnummer für Endnutzer entfernt, nur als title-Tooltip für Entwickler sichtbar */}
-                <span className="text-[12px] font-black text-gray-800 tracking-tight" title="V 2.9">Modulare Architektur</span>
+                <span className="text-[12px] font-black text-gray-800 tracking-tight">Modulare Architektur</span>
               </div>
             </div>
             <div className="flex items-center gap-4 md:gap-10">
+              <Link
+                to="/mentor"
+                className="flex items-center gap-1.5 px-3 py-2 md:px-4 md:py-2 rounded-full hover:bg-gray-100 transition-all text-gray-400 hover:text-gray-600"
+                title="Mentor Dashboard"
+              >
+                <IconChart size={16} />
+                <span className="hidden md:inline text-[10px] font-black uppercase tracking-widest">Mentor</span>
+              </Link>
               {user.isAdmin && (
                 <Link to="/admin" className="text-[10px] md:text-[11px] font-black text-amber-900 uppercase tracking-widest px-3 py-2 md:px-6 md:py-3 bg-amber-100 rounded-full hover:bg-amber-200 transition-all border-2 border-amber-300 shadow-sm">
                    Admin Dashboard

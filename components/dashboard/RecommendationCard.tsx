@@ -14,18 +14,18 @@ interface RecommendationCardProps {
 const PRODUCT_DISPLAY: Record<string, { name: string; icon: string; beschreibung: string }> = {
   'Basis': {
     name: 'KI-Grundlagen Kurs',
-    icon: '\uD83C\uDF31',
+    icon: '🌱',
     beschreibung: 'Strukturierter Einstieg in die KI-Welt + Zugang zur Community + erste Tools und Vorlagen',
   },
   'Booster+': {
     name: 'Intensiv-Mentoring',
-    icon: '\uD83D\uDE80',
-    beschreibung: 'W\u00F6chentliche 1:1 Sessions + pers\u00F6nlicher KI-Fahrplan + Zugang zu allen Blueprints',
+    icon: '🚀',
+    beschreibung: 'Wöchentliche 1:1 Sessions + persönlicher KI-Fahrplan + Zugang zu allen Blueprints',
   },
   'Booster++': {
     name: 'Premium KI-Transformation',
-    icon: '\u26A1',
-    beschreibung: 'T\u00E4glicher Zugang zu KI-Experten + ma\u00DFgeschneiderte Automatisierungen + strategische Begleitung',
+    icon: '⚡',
+    beschreibung: 'Täglicher Zugang zu KI-Experten + maßgeschneiderte Automatisierungen + strategische Begleitung',
   },
 };
 
@@ -47,7 +47,7 @@ const RecommendationCard: React.FC<RecommendationCardProps> = ({ analysis, istAn
       {/* Header */}
       <div className="flex items-center gap-2 mb-1">
         <h3 className="text-[11px] font-black uppercase tracking-[0.3em]" style={{ color: COLORS.PRIMARY }}>
-          Dein n\u00E4chster Schritt
+          Dein nächster Schritt
         </h3>
       </div>
 

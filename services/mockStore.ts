@@ -5,7 +5,8 @@
 
 import {
   User, Assessment, Analysis,
-  KiPillarScores, ZukunftPillarScores, CECData, ZukunftRisikoData
+  KiPillarScores, ZukunftPillarScores, CECData, ZukunftRisikoData,
+  ScoreHistoryEntry
 } from '../types';
 import {
   KI_MATURITY_LEVELS, ZUKUNFT_MATURITY_LEVELS, JAHRESUMSATZ_RANGES
@@ -304,16 +305,31 @@ export function buildFullAnalysis(assessment: Partial<Assessment>, userId: strin
       previousAssessmentDate: previousAnalysis.createdAt,
     } : {}),
 
-    // Score history (accumulate from previous)
-    scoreHistory: [
-      ...(previousAnalysis?.scoreHistory || []),
-      ...(previousAnalysis ? [{
-        kiScore: previousAnalysis.kiScore,
-        zukunftScore: previousAnalysis.zukunftScore,
-        date: previousAnalysis.createdAt,
-      }] : []),
-      { kiScore, zukunftScore, date: Date.now() },
-    ],
+    // Score history (accumulate from previous — avoid duplicates)
+    scoreHistory: (() => {
+      const history: ScoreHistoryEntry[] = [];
+      // Carry over existing history entries from previous analysis
+      if (previousAnalysis?.scoreHistory && previousAnalysis.scoreHistory.length > 0) {
+        history.push(...previousAnalysis.scoreHistory);
+      } else if (previousAnalysis) {
+        // Fallback: no scoreHistory yet but previous exists — reconstruct
+        if (previousAnalysis.previousKiScore != null) {
+          history.push({
+            kiScore: previousAnalysis.previousKiScore,
+            zukunftScore: previousAnalysis.previousZukunftScore || 0,
+            date: previousAnalysis.previousAssessmentDate || (Date.now() - 14 * 24 * 60 * 60 * 1000),
+          });
+        }
+        history.push({
+          kiScore: previousAnalysis.kiScore,
+          zukunftScore: previousAnalysis.zukunftScore,
+          date: previousAnalysis.createdAt,
+        });
+      }
+      // Append current scores
+      history.push({ kiScore, zukunftScore, date: Date.now() });
+      return history;
+    })(),
 
     // Legacy / Admin compat
     overallScore: kiScore,

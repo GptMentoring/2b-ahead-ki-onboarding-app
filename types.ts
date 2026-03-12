@@ -157,6 +157,14 @@ export interface ZukunftRisikoData {
   risiko3Jahre: number;
 }
 
+// ─── Score History ──────────────────────────────────────────────
+
+export interface ScoreHistoryEntry {
+  kiScore: number;
+  zukunftScore: number;
+  date: number; // timestamp
+}
+
 // ─── Analysis (Dual Scoring) ─────────────────────────────────────
 
 export interface Analysis {
@@ -187,7 +195,7 @@ export interface Analysis {
   previousAssessmentDate?: number;
 
   // Score history for sparkline (accumulated across re-assessments)
-  scoreHistory?: Array<{ kiScore: number; zukunftScore: number; date: number }>;
+  scoreHistory?: ScoreHistoryEntry[];
 
   // Legacy / Admin compatibility
   overallScore: number;

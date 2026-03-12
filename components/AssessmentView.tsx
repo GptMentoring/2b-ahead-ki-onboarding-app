@@ -309,6 +309,32 @@ const AssessmentView: React.FC<AssessmentViewProps> = ({ user, onComplete }) => 
     m4_einschraenkungen: '',
   });
 
+  // ─── SessionStorage Backup ─────────────────────────────────────
+  const storageKey = `assessment_draft_${user.uid}`;
+
+  // Restore from sessionStorage on mount
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(storageKey);
+      if (saved) {
+        const draft = JSON.parse(saved);
+        if (draft.step !== undefined) setStep(draft.step);
+        if (draft.form) setForm(prev => ({ ...prev, ...draft.form }));
+        if (draft.selectedIndices) setSelectedIndices(draft.selectedIndices);
+        if (draft.showIntro !== undefined) setShowIntro(draft.showIntro);
+      }
+    } catch (_e) { /* silently ignore parse errors */ }
+  }, [storageKey]);
+
+  // Persist to sessionStorage on every change
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(storageKey, JSON.stringify({
+        step, form, selectedIndices, showIntro,
+      }));
+    } catch (_e) { /* silently ignore quota errors */ }
+  }, [step, form, selectedIndices, showIntro, storageKey]);
+
   // Re-Assessment erkennen: Wenn bereits eine Analyse existiert, Intro überspringen
   useEffect(() => {
     dbService.getAnalysis(user.uid).then(existing => {
@@ -337,8 +363,10 @@ const AssessmentView: React.FC<AssessmentViewProps> = ({ user, onComplete }) => 
 
   // Q4: Beim Übergang KI→Zukunft die Bridge-Seite anzeigen
   const next = () => {
+    dbService.trackEvent(user.uid, 'assessment_step_completed', { step, bereich: ASSESSMENT_STEPS[step]?.bereich });
     if (step === BRIDGE_AFTER_STEP) {
       setShowBridge(true);
+      dbService.trackEvent(user.uid, 'bridge_screen_viewed');
     } else {
       setStep(s => Math.min(s + 1, totalSteps - 1));
     }
@@ -423,6 +451,7 @@ const AssessmentView: React.FC<AssessmentViewProps> = ({ user, onComplete }) => 
       // Q5: Celebration Screen statt direktem Redirect
       setCompletedAnalysis(analysis);
       setShowCelebration(true);
+      sessionStorage.removeItem(storageKey);
     } catch (error) {
       console.error('Assessment submit error:', error);
       alert('Fehler beim Speichern. Bitte erneut versuchen.');

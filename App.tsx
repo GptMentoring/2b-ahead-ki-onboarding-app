@@ -10,6 +10,7 @@ import AssessmentView from './components/AssessmentView';
 import DashboardView from './components/DashboardView';
 import QuickWinView from './components/QuickWinView';
 import AdminPanelView from './components/AdminPanelView';
+import MentorView from './components/MentorView';
 import Layout from './components/Layout';
 
 const App: React.FC = () => {
@@ -80,6 +81,7 @@ const App: React.FC = () => {
           } />
           <Route path="/quickwin" element={<QuickWinView analysis={analysis} />} />
           <Route path="/admin" element={user.isAdmin ? <AdminPanelView /> : <Navigate to="/" />} />
+          <Route path="/mentor" element={<MentorView />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Layout>

@@ -8,10 +8,11 @@ import { LevelProgressBar, NextLevelInfo } from './shared';
 // ─── Mini Sparkline ──────────────────────────────────────────
 const MiniSparkline: React.FC<{
   points: number[];
+  dates?: number[];
   color: string;
   width?: number;
   height?: number;
-}> = ({ points, color, width = 120, height = 32 }) => {
+}> = ({ points, dates, color, width = 120, height = 32 }) => {
   if (points.length < 2) return null;
 
   const max = Math.max(...points, 100);
@@ -29,8 +30,9 @@ const MiniSparkline: React.FC<{
 
   const pathD = coords.map((c, i) => `${i === 0 ? 'M' : 'L'}${c.x.toFixed(1)},${c.y.toFixed(1)}`).join(' ');
   const last = coords[coords.length - 1];
-  const prev = coords[coords.length - 2];
   const trending = points[points.length - 1] >= points[points.length - 2];
+
+  const formatDate = (ts: number) => new Date(ts).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' });
 
   return (
     <div className="flex items-center gap-2 mt-1.5">
@@ -42,10 +44,16 @@ const MiniSparkline: React.FC<{
         />
         {/* Line */}
         <path d={pathD} fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-        {/* Dots */}
+        {/* Dots with tooltip */}
         {coords.map((c, i) => (
           <circle key={i} cx={c.x} cy={c.y} r={i === coords.length - 1 ? 3 : 2}
-            fill={i === coords.length - 1 ? color : 'white'} stroke={color} strokeWidth={1.5} />
+            fill={i === coords.length - 1 ? color : 'white'} stroke={color} strokeWidth={1.5}
+            className="cursor-pointer"
+          >
+            {dates && dates[i] && (
+              <title>{`${points[i]} Pkt — ${formatDate(dates[i])}`}</title>
+            )}
+          </circle>
         ))}
       </svg>
       {/* Trend arrow */}
@@ -128,6 +136,7 @@ const ScoreCards: React.FC<ScoreCardsProps> = ({
         {analysis.scoreHistory && analysis.scoreHistory.length >= 2 && (
           <MiniSparkline
             points={analysis.scoreHistory.map(h => h.kiScore)}
+            dates={analysis.scoreHistory.map(h => h.date)}
             color={COLORS.PRIMARY}
           />
         )}
@@ -183,6 +192,7 @@ const ScoreCards: React.FC<ScoreCardsProps> = ({
         {analysis.scoreHistory && analysis.scoreHistory.length >= 2 && (
           <MiniSparkline
             points={analysis.scoreHistory.map(h => h.zukunftScore)}
+            dates={analysis.scoreHistory.map(h => h.date)}
             color={COLORS.ZUKUNFT}
           />
         )}

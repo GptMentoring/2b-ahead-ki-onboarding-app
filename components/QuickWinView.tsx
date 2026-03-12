@@ -208,6 +208,7 @@ const QuickWinView: React.FC<QuickWinViewProps> = ({ analysis }) => {
   }, [actionPlan]);
 
   const handleComplete = useCallback(() => {
+    dbService.trackEvent(analysis!.userId, 'quickwin_completed', { todoIndex: activeIndex });
     const next = new Set(completedSet);
     next.add(activeIndex);
     setCompletedSet(next);
@@ -412,6 +413,7 @@ const QuickWinView: React.FC<QuickWinViewProps> = ({ analysis }) => {
           <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={() => {
+                dbService.trackEvent(analysis!.userId, 'quickwin_started', { todoIndex: activeIndex });
                 setTransitioning(true);
                 setTimeout(() => {
                   setStep(2);

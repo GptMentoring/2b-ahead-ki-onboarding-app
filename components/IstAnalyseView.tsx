@@ -185,6 +185,7 @@ const IstAnalyseView: React.FC<IstAnalyseViewProps> = ({ user, onComplete }) => 
       setError('Bitte beantworte alle Pflichtfragen.');
       return;
     }
+    dbService.trackEvent(user.uid, 'istanalyse_step_completed', { stepIndex: currentStepIndex });
     if (currentStepIndex < totalSteps - 1) {
       setCurrentStepIndex(prev => prev + 1);
     }

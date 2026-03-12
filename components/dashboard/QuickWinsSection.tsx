@@ -171,41 +171,54 @@ const QuickWinsSection: React.FC<QuickWinsSectionProps> = ({ todos }) => {
                 if (idx === activeIndex) return null;
                 const done = completedSet.has(idx);
                 return (
-                  <div key={idx} className={`flex gap-2.5 items-start p-3 rounded-xl border transition-all duration-300 ${
-                    done ? 'bg-emerald-50/50 border-emerald-100' : 'bg-gray-50 border-gray-100'
-                  }`}>
-                    <div className={`mt-0.5 w-5 h-5 rounded flex-shrink-0 flex items-center justify-center ${
-                      done ? 'bg-emerald-100 text-emerald-600' :
-                      todo.priority === 'high' ? 'bg-rose-100 text-rose-600' :
-                      todo.priority === 'medium' ? 'bg-amber-100 text-amber-600' :
-                      'bg-gray-100 text-gray-500'
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      const next = new Set(completedSet);
+                      if (done) {
+                        next.delete(idx);
+                      } else {
+                        next.add(idx);
+                      }
+                      setCompletedSet(next);
+                    }}
+                    className={`w-full flex gap-2.5 items-start p-3 rounded-xl border transition-all duration-300 text-left group/item ${
+                      done ? 'bg-emerald-50/50 border-emerald-100' : 'bg-gray-50 border-gray-100 hover:border-gray-200 hover:bg-gray-100/50'
+                    }`}
+                  >
+                    <span className={`mt-0.5 w-5 h-5 rounded flex-shrink-0 flex items-center justify-center transition-all duration-200 ${
+                      done ? 'bg-emerald-500 text-white' :
+                      'border-2 border-gray-300 group-hover/item:border-gray-400'
                     }`}>
-                      {done ? (
+                      {done && (
                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
-                      ) : (
-                        <span className="text-[8px] font-black">{idx + 1}</span>
                       )}
-                    </div>
+                    </span>
                     <div className="flex-1 min-w-0">
                       <p className={`text-xs font-bold leading-relaxed ${done ? 'text-gray-400 line-through' : 'text-gray-800'}`}>{todo.text}</p>
-                      <div className="flex flex-wrap gap-1 mt-1.5">
-                        <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-tight"
-                          style={{
-                            backgroundColor: todo.type === 'ki' ? `${COLORS.PRIMARY}10` : `${COLORS.ZUKUNFT}10`,
-                            color: todo.type === 'ki' ? COLORS.PRIMARY : COLORS.ZUKUNFT,
-                          }}>
-                          {todo.pillarName}
-                        </span>
-                        {todo.timeEstimate && (
-                          <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 uppercase tracking-tight">
-                            ~{todo.timeEstimate}
+                      {done && (
+                        <p className="text-[10px] font-black text-emerald-600 mt-1">Erledigt!</p>
+                      )}
+                      {!done && (
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                          <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-tight"
+                            style={{
+                              backgroundColor: todo.type === 'ki' ? `${COLORS.PRIMARY}10` : `${COLORS.ZUKUNFT}10`,
+                              color: todo.type === 'ki' ? COLORS.PRIMARY : COLORS.ZUKUNFT,
+                            }}>
+                            {todo.pillarName}
                           </span>
-                        )}
-                      </div>
+                          {todo.timeEstimate && (
+                            <span className="text-[7px] font-black px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-400 uppercase tracking-tight">
+                              ~{todo.timeEstimate}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>

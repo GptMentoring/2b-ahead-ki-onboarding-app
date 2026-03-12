@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { User, Assessment, Analysis, IstAnalyseProfile } from '../types';
 import { dbService } from '../services/dbService';
 import {
@@ -12,7 +12,8 @@ import { IconClipboard, IconChart, IconCurrency, IconRocket, IconDocument } from
 import ScoreRadar from './RadarChart';
 
 // Dashboard sub-components
-import { CollapsibleSection, analyzePillars, generateTodos, getNextLevelInfo, formatEur, generateCelebrationLine } from './dashboard/shared';
+import { CollapsibleSection, analyzePillars, generateTodos, getNextLevelInfo, formatEur, generateCelebrationLine, PillarAnalysis } from './dashboard/shared';
+import ProgressReport from './dashboard/ProgressReport';
 import ScoreCards from './dashboard/ScoreCards';
 import ROICard from './dashboard/ROICard';
 import ZukunftRisikoCard from './dashboard/ZukunftRisikoCard';
@@ -23,6 +24,7 @@ import QuickWinsSection from './dashboard/QuickWinsSection';
 import WeeklyPlanSection from './dashboard/WeeklyPlanSection';
 import SessionBridgeCard from './dashboard/SessionBridgeCard';
 import AssessmentDataSection from './dashboard/AssessmentDataSection';
+import LevelUpCelebration from './dashboard/LevelUpCelebration';
 
 interface DashboardViewProps {
   user: User;
@@ -43,35 +45,109 @@ const getWeekKey = () => {
   return `${now.getFullYear()}-W${week}`;
 };
 
-const DashboardView: React.FC<DashboardViewProps> = ({ user, analysis, istAnalyseProfile, onRepeat }) => {
+const DashboardView: React.FC<DashboardViewProps> = ({ user, analysis: analysisProp, istAnalyseProfile, onRepeat }) => {
   const [assessment, setAssessment] = useState<Assessment | null>(null);
+  const [analysis, setAnalysis] = useState<Analysis | null>(analysisProp);
   const [showKiDetail, setShowKiDetail] = useState(false);
   const [showZukunftDetail, setShowZukunftDetail] = useState(false);
+  const [showReport, setShowReport] = useState(false);
 
-  // Checklisten-Persistence: localStorage mit user-uid + Wochennummer
-  const storageKey = `checklist_${user?.uid}_${getWeekKey()}`;
-  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>(() => {
-    try {
-      const saved = localStorage.getItem(storageKey);
-      return saved ? JSON.parse(saved) : {};
-    } catch { return {}; }
-  });
+  // ─── R3: Level-Up Celebration State ──────────────────────────
+  const [levelUp, setLevelUp] = useState<{
+    prev: number; new: number; name: string; type: 'ki' | 'zukunft';
+  } | null>(null);
 
+  // ─── R4: Checklisten-Persistenz (Firestore + localStorage Fallback) ──
+  const weekKey = getWeekKey();
+  const storageKey = `checklist_${user?.uid}_${weekKey}`;
+  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
+  const [checklistLoaded, setChecklistLoaded] = useState(false);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Laden: Firestore zuerst, localStorage als Fallback
   useEffect(() => {
-    if (Object.keys(checkedItems).length > 0) {
-      localStorage.setItem(storageKey, JSON.stringify(checkedItems));
-    }
-  }, [checkedItems, storageKey]);
+    let cancelled = false;
+    const loadChecklist = async () => {
+      try {
+        const firestoreData = await dbService.getChecklist(user.uid, weekKey);
+        if (!cancelled) {
+          if (Object.keys(firestoreData).length > 0) {
+            setCheckedItems(firestoreData);
+          } else {
+            // Fallback: localStorage (Offline oder erste Migration)
+            try {
+              const saved = localStorage.getItem(storageKey);
+              if (saved && !cancelled) {
+                const parsed = JSON.parse(saved) as Record<string, boolean>;
+                setCheckedItems(parsed);
+                // Migriere localStorage-Daten nach Firestore
+                if (Object.keys(parsed).length > 0) {
+                  dbService.saveChecklist(user.uid, weekKey, parsed);
+                }
+              }
+            } catch { /* localStorage nicht verfuegbar */ }
+          }
+          setChecklistLoaded(true);
+        }
+      } catch {
+        // Firestore fehlgeschlagen — localStorage Fallback
+        if (!cancelled) {
+          try {
+            const saved = localStorage.getItem(storageKey);
+            if (saved) setCheckedItems(JSON.parse(saved));
+          } catch { /* noop */ }
+          setChecklistLoaded(true);
+        }
+      }
+    };
+    loadChecklist();
+    return () => { cancelled = true; };
+  }, [user.uid, weekKey, storageKey]);
 
-  const toggleChecked = (key: string) => setCheckedItems(prev => ({ ...prev, [key]: !prev[key] }));
+  // Speichern: Debounced in BEIDE (localStorage + Firestore)
+  useEffect(() => {
+    if (!checklistLoaded) return; // Nicht speichern bevor geladen
+    if (Object.keys(checkedItems).length === 0) return;
+
+    // localStorage sofort (Offline-Support)
+    localStorage.setItem(storageKey, JSON.stringify(checkedItems));
+
+    // Firestore debounced (500ms)
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      dbService.saveChecklist(user.uid, weekKey, checkedItems);
+    }, 500);
+
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, [checkedItems, checklistLoaded, user.uid, weekKey, storageKey]);
+
+  const toggleChecked = useCallback(
+    (key: string) => setCheckedItems(prev => ({ ...prev, [key]: !prev[key] })),
+    []
+  );
+
+  // Sync local analysis when prop changes
+  useEffect(() => {
+    setAnalysis(analysisProp);
+  }, [analysisProp]);
 
   useEffect(() => {
     const loadData = async () => {
       const ass = await dbService.getAssessment(user.uid);
       setAssessment(ass);
+
+      // Load score history from subcollection and inject into analysis
+      if (analysisProp) {
+        const history = await dbService.getScoreHistory(user.uid);
+        if (history.length > 0) {
+          setAnalysis(prev => prev ? { ...prev, scoreHistory: history } : prev);
+        }
+      }
     };
     loadData();
-  }, [user]);
+  }, [user, analysisProp]);
 
   const { strengths, potentials } = useMemo(() =>
     analysis ? analyzePillars(analysis) : { strengths: [], potentials: [] },
@@ -98,12 +174,59 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, analysis, istAnalys
     [analysis, strengths]
   );
 
+  // ─── R3: Level-Up Detection ──────────────────────────────────
+  useEffect(() => {
+    if (!analysis) return;
+
+    // KI Level-Up pruefen
+    if (analysis.previousKiScore != null) {
+      const prevKiLevel = KI_MATURITY_LEVELS.find(
+        m => analysis.previousKiScore! >= m.min && analysis.previousKiScore! <= m.max
+      );
+      if (prevKiLevel && analysis.kiMaturityLevel > prevKiLevel.level) {
+        setLevelUp({
+          prev: prevKiLevel.level,
+          new: analysis.kiMaturityLevel,
+          name: analysis.kiMaturityName,
+          type: 'ki',
+        });
+        return; // Zeige nur einen Level-Up auf einmal
+      }
+    }
+
+    // Zukunft Level-Up pruefen
+    if (analysis.previousZukunftScore != null) {
+      const prevZukunftLevel = ZUKUNFT_MATURITY_LEVELS.find(
+        m => analysis.previousZukunftScore! >= m.min && analysis.previousZukunftScore! <= m.max
+      );
+      if (prevZukunftLevel && analysis.zukunftMaturityLevel > prevZukunftLevel.level) {
+        setLevelUp({
+          prev: prevZukunftLevel.level,
+          new: analysis.zukunftMaturityLevel,
+          name: analysis.zukunftMaturityName,
+          type: 'zukunft',
+        });
+      }
+    }
+  }, [analysis]); // Nur einmal bei analysis-Load
+
   if (!analysis || !assessment) return null;
 
   const isSolo = assessment.m1_solo === 'solo';
 
   return (
     <div className="max-w-7xl mx-auto p-6 md:p-12 pb-32 animate-in fade-in duration-1000">
+
+      {/* ─── R3: Level-Up Celebration Overlay ─── */}
+      {levelUp && (
+        <LevelUpCelebration
+          previousLevel={levelUp.prev}
+          newLevel={levelUp.new}
+          newLevelName={levelUp.name}
+          type={levelUp.type}
+          onClose={() => setLevelUp(null)}
+        />
+      )}
 
       {/* ═══════════════════════════════════════════════════════════
           SCREEN 1: SCORE HERO (above the fold)
@@ -127,10 +250,29 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, analysis, istAnalys
             {celebrationLine}
           </p>
         )}
-        <p className="text-gray-500 mt-3 font-bold text-sm">
-          {isSolo ? 'Solo-Selbstständig' : 'Team/Unternehmen'} — Assessment vom {new Date(analysis.createdAt).toLocaleDateString('de-DE')}
-        </p>
+        <div className="flex items-center gap-3 mt-3">
+          <p className="text-gray-500 font-bold text-sm">
+            {isSolo ? 'Solo-Selbstständig' : 'Team/Unternehmen'} — Assessment vom {new Date(analysis.createdAt).toLocaleDateString('de-DE')}
+          </p>
+          <button
+            onClick={() => { dbService.trackEvent(user.uid, 'report_exported'); setShowReport(true); }}
+            className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-all no-print"
+          >
+            Report exportieren
+          </button>
+        </div>
       </header>
+
+      {/* ─── R5: Progress Report Overlay ─── */}
+      {showReport && (
+        <ProgressReport
+          user={user}
+          analysis={analysis}
+          strengths={strengths}
+          potentials={potentials}
+          onClose={() => setShowReport(false)}
+        />
+      )}
 
       {/* ─── ROI Highlight (stärkstes Verkaufsargument — above the fold) ─── */}
       <ROICard analysis={analysis} />
@@ -146,6 +288,15 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, analysis, istAnalys
         onToggleZukunftDetail={() => setShowZukunftDetail(!showZukunftDetail)}
       />
 
+      {/* ─── Detail Panels (direkt unter ScoreCards, inline expandiert) ─── */}
+      <DetailPanels
+        analysis={analysis}
+        assessment={assessment}
+        isSolo={isSolo}
+        showKiDetail={showKiDetail}
+        showZukunftDetail={showZukunftDetail}
+      />
+
       {/* ─── Session-Brücke (Upsell-Chance — above the fold) ─── */}
       <SessionBridgeCard
         sessionEmpfehlung={istAnalyseProfile?.sessionEmpfehlung || (analysis.kiScore < 40 ? 'Dienstag' : 'Donnerstag')}
@@ -156,40 +307,64 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, analysis, istAnalys
       <QuickWinsSection todos={todos} />
 
       {/* ═══════════════════════════════════════════════════════════
-          SCREEN 2: PERSÖNLICHES PROFIL + STÄRKEN
+          SCREEN 2: STÄRKEN, PROFIL & HANDLUNGSPLAN
           ═══════════════════════════════════════════════════════════ */}
 
+      {/* ─── Stärken & Potenziale (direkt nach Quick-Wins für Kontext) ─── */}
+      <StrengthsPotentials strengths={strengths} potentials={potentials} />
+
       {/* ─── KI Ist-Analyse: CTA oder Profil ─── */}
-      {!user.istAnalyseCompleted ? (
-        <Card className="p-6 md:p-8 mb-8 border-2 no-print" style={{ borderColor: COLORS.SUCCESS }}>
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <span className="text-gray-400"><IconClipboard size={28} /></span>
-              <div>
-                <h3 className="text-base font-black text-gray-900 mb-1">
-                  Vervollständige dein Profil
-                </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  Die KI Ist-Analyse personalisiert dein Erlebnis: passende Tools, Blueprints und Sessions. <strong>~10 Min.</strong>
-                </p>
+      {!user.istAnalyseCompleted ? (() => {
+        // S3: Dynamic, outcome-focused CTA based on user's score
+        let ctaHeadline: string;
+        let ctaDescription: string;
+
+        if (analysis.kiScore < 30) {
+          ctaHeadline = 'Entdecke deinen persönlichen KI-Einstiegsplan';
+          ctaDescription = 'Die KI Ist-Analyse zeigt dir genau, wo du am schnellsten Ergebnisse erzielst. ~10 Min.';
+        } else if (analysis.kiScore < 60) {
+          // Find weakest pillar
+          const pillarEntries = Object.entries(analysis.kiPillarScores) as [string, number][];
+          const weakest = pillarEntries.reduce((min, curr) => curr[1] < min[1] ? curr : min, pillarEntries[0]);
+          const weakestName = KI_PILLAR_NAMES[weakest[0]] || weakest[0];
+          ctaHeadline = `Optimiere dein schwächstes Feld: ${weakestName}`;
+          ctaDescription = `Dein Bereich '${weakestName}' hat Potenzial. Die Ist-Analyse gibt dir konkrete nächste Schritte. ~10 Min.`;
+        } else {
+          ctaHeadline = 'Hole das Maximum aus deinem KI-Potenzial';
+          ctaDescription = 'Auf deinem Level lohnt sich die Feinabstimmung — erhalte passgenaue Tool- und Session-Empfehlungen. ~10 Min.';
+        }
+
+        return (
+          <Card className="p-6 md:p-8 mb-8 border-2 no-print" style={{ borderColor: COLORS.SUCCESS }}>
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <span className="text-gray-400"><IconClipboard size={28} /></span>
+                <div>
+                  <h3 className="text-base font-black text-gray-900 mb-1">
+                    {ctaHeadline}
+                  </h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    {ctaDescription}
+                  </p>
+                </div>
               </div>
+              <Button
+                onClick={() => { dbService.trackEvent(user.uid, 'istanalyse_cta_clicked'); window.location.hash = '/ist-analyse'; }}
+                className="whitespace-nowrap"
+              >
+                KI Ist-Analyse starten
+              </Button>
             </div>
-            <Button
-              onClick={() => { window.location.hash = '/ist-analyse'; }}
-              className="whitespace-nowrap"
-            >
-              KI Ist-Analyse starten
-            </Button>
-          </div>
-        </Card>
-      ) : istAnalyseProfile ? (
+          </Card>
+        );
+      })() : istAnalyseProfile ? (
         <div className="mb-8">
           <IstAnalyseProfileSection profile={istAnalyseProfile} />
         </div>
       ) : null}
 
-      {/* ─── Stärken & Potenziale ─── */}
-      <StrengthsPotentials strengths={strengths} potentials={potentials} />
+      {/* ─── Zukunft-Risiko (nach Profil — Motivation für Handlung) ─── */}
+      <ZukunftRisikoCard analysis={analysis} />
 
       {/* ─── Wochenplan (Timeline) ─── */}
       <Card className="p-6 md:p-8 mb-8">
@@ -209,19 +384,6 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, analysis, istAnalys
 
       {/* ─── Produkt-Empfehlung ─── */}
       <RecommendationCard analysis={analysis} istAnalyseProfile={istAnalyseProfile || undefined} />
-
-      {/* ─── Zukunft-Risiko ─── */}
-      <ZukunftRisikoCard analysis={analysis} />
-
-      {/* ─── Detail Panels (expandable) ─── */}
-      <DetailPanels
-        analysis={analysis}
-        assessment={assessment}
-        isSolo={isSolo}
-        showKiDetail={showKiDetail}
-        showZukunftDetail={showZukunftDetail}
-      />
-
 
       {/* ═══════════════════════════════════════════════════════════
           SCREEN 3: DETAILS (alle aufklappbar)
@@ -268,7 +430,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ user, analysis, istAnalys
 
         {/* ─── CEC ─── */}
         {analysis.cecData && analysis.cecData.gesamtErgebnis > 0 && (
-          <CollapsibleSection title="Wirtschaftlicher KI-Effekt (CEC)" icon={<IconCurrency size={20} />} color="#92400E">
+          <CollapsibleSection title="Wirtschaftlicher KI-Effekt (CEC)" icon={<IconCurrency size={20} />} color="#92400E" defaultOpen={true}>
             <p className="text-xs text-gray-500 font-bold mb-6">
               Basierend auf deinem Stundensatz ({assessment.m2_stundensatz} EUR) und deinen Angaben.
             </p>
